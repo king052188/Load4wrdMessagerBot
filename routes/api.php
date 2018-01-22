@@ -16,3 +16,8 @@ use Illuminate\Http\Request;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+
+Route::get('/v1/verify', 'L4DBotController@verification');
+Route::get('/v1/register', 'L4DBotController@register');
+Route::get('/v1/command', 'L4DBotController@command_load');
