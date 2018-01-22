@@ -303,7 +303,6 @@ function command(sender_psid, command) {
 
       sender_fbuid = sender_psid;
       handleMessageSend(sender_psid, message);
-      setTimeout(reload_test, 1500);
     }
     else {
       console.error("Unable to send message:" + err);

@@ -12,6 +12,8 @@ use App\SMSQueue;
 class L4DHelper extends Controller
 {
     //
+    public static $load_api = "api-load4wrd.kpa.ph";
+
     public static $company_name = "PollyStore";
 
     public function one_time_password() {
@@ -37,4 +39,36 @@ class L4DHelper extends Controller
       $s->status = 0;
       return $s->save();
     }
+
+    public function update_wallet($duid, $transaction, $description, $amount) {
+      $s = new SMSQueue();
+      $s->dealer_id = $duid;
+      $s->transaction = $transaction;
+      $s->description = $description;
+      $s->amount = $amount;
+      $s->type = 0;
+      $s->status = 0;
+      return $s->save();
+    }
+
+    public function curl_execute($data, $path) {
+    // Email API
+    $url = "http://". $this::$load_api . $path;
+
+    // Array to Json
+    $to_json = json_encode($data);
+
+    // Added JSON Header
+    $headers = array('Accept: application/json','Content-Type: application/json');
+
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "GET");
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $to_json);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    $result = json_decode(curl_exec($ch), true);
+    curl_close($ch);
+    return $result;
+  }
+
 }
