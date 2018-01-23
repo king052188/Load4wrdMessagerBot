@@ -7,6 +7,7 @@ use App\Dealer;
 use App\DealerType;
 use App\Wallet;
 use App\SMSQueue;
+use Exception;
 
 
 class L4DHelper extends Controller
@@ -52,23 +53,33 @@ class L4DHelper extends Controller
     }
 
     public function curl_execute($data, $path) {
-    // Email API
-    $url = "http://". $this::$load_api . $path;
+      // Email API
+      $url = "http://". $this::$load_api . $path;
 
-    // Array to Json
-    $to_json = json_encode($data);
+      // Array to Json
+      $to_json = json_encode($data);
 
-    // Added JSON Header
-    $headers = array('Accept: application/json','Content-Type: application/json');
+      // Added JSON Header
+      $headers = array('Accept: application/json','Content-Type: application/json');
 
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "GET");
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $to_json);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-    $result = json_decode(curl_exec($ch), true);
-    curl_close($ch);
-    return $result;
-  }
+      $ch = curl_init($url);
+      curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "GET");
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $to_json);
+      curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+      $result = json_decode(curl_exec($ch), true);
+      curl_close($ch);
+      return $result;
+    }
 
+    public function toINT($value) {
+      $r = -0;
+      try {
+        $r = (int)$value;
+      }
+      catch(\Exception $e) {
+        $r = 1;
+      }
+      return $r;
+    }
 }

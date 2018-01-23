@@ -135,6 +135,7 @@ class L4DBotController extends Controller
         'status' => 200,
         'message' => $msg
       );
+
     }
 
     public function execute_load($dealer, $commands) {
@@ -146,10 +147,8 @@ class L4DBotController extends Controller
     }
 
     public function verify_load(Request $request) {
-
       $fb_id = $request->fb_id;
       $network = $request->network;
-      $mobile = $request->mobile;
       $transaction = $request->transaction;
 
       $dealer = DB::select("SELECT * FROM tbl_dealers WHERE facebook_id = '{$fb_id}' OR mobile = '{$fb_id}';");
@@ -165,16 +164,54 @@ class L4DBotController extends Controller
         "network" => $network,
         "tx" => $transaction
       );
+
       $param = "network={$network}&tx={$transaction}";
       $json = $helper->curl_execute(null, "/verify.aspx?{$param}");
 
       if($network == "SMART") {
-        if (strpos($json["TransactionStatus"], 'WBAL') !== false) {
-          return $this->wbal();
-        }
-        if()
+        return $this->smart_response($request, $json);
       }
 
-      return $json;
+      return $data;
+    }
+
+    public function smart_response($request, $json) {
+      $mobile = $request->mobile;
+      $amount = (float)$request->amount;
+
+      if (strpos($json["ResultCode"], '10') !== false) {
+        return array(
+          'status' => 201,
+          'message' => "Need to reverify again."
+        );
+      }
+
+      if (strpos($json["ResultCode"], '0000') !== false) {
+        if (strpos($json["TransactionStatus"], 'SUCCESSFUL') !== false) {
+          if($json["TargetNo"] != $mobile) {
+            return array(
+              'status' => 401,
+              'message' => "Oops, recipient mobile number did not match to the transaction."
+            );
+          }
+          if($json["Amount"] != $amount) {
+            return array(
+              'status' => 401,
+              'message' => "Oops, the load amount did not match to the transaction."
+            );
+          }
+          $msg = "₱" . $json["Amount"] . " pesos has been loaded to " . $json["TargetNo"] . ". Thank You!";
+          return array(
+            'status' => 200,
+            'message' => $msg,
+            'data' => $json
+          );
+        }
+      }
+
+      return array(
+        'status' => 500,
+        'message' => "Your request was failed. Please try again."
+      );
     }
 }

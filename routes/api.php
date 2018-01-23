@@ -20,4 +20,5 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 Route::get('/v1/verify', 'L4DBotController@verification');
 Route::get('/v1/register', 'L4DBotController@register');
-Route::get('/v1/command', 'L4DBotController@command_load');
+Route::get('/v1/load/command', 'L4DBotController@command_load');
+Route::get('/v1/load/verify', 'L4DBotController@verify_load');
