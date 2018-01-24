@@ -1,7 +1,7 @@
 
-const PAGE_ACCESS_TOKEN = "EAABkwwUQZC4wBADZAJw0RePOV6nUPiGkjZAfulSRzTdsTflfrG6AFItn7VObs8WwysrAEb1DNpYzSTgrXcEd6jmC5z3bfVRflZBdcZCwRWrXAVmJn12EGebnP78nZBxu8O2bqNmglUxJyn4tfH2wnv4KBraOaO6IWku8Kijcb4yagRRXcWvQHI";
+const PAGE_ACCESS_TOKEN = "EAABkwwUQZC4wBANVx5wfygUARDfZA1K8Jr8wg6Vy2SbLhP2JPZAjyZAOKtBWgbZC7qzxwIR0rLtuyItrPgd2rXKYZCkr0jV8yGWD5ArJtXj0s6VZCR6kOTKWP05Jo7vComdY4DSqx9cYSSQOfnmE6LhbARirvVNhodEtOOuVFZAZAngZDZD";
 const VERIFY_TOKEN = "POLLY1020";
-const API_URL= "http://localhost:7000";
+const API_URL= "http://2a4e8e21.ngrok.io/";
 const API_SMS = "http://home.kpa.ph:5000";
 
 module.exports.PAGE_ACCESS_TOKEN = PAGE_ACCESS_TOKEN;

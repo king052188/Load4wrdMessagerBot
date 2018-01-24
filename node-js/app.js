@@ -104,25 +104,9 @@ function handleMessage(sender_psid, received_message) {
       }
     }
     else if(msg.includes("LOAD")) {
-      data = msg.split(" ");
+      data = msg;
       console.log(data);
-      if(data.length > 0) {
-        command(sender_psid, data[1]);
-      }
-    }
-    else if(msg.includes("LC")) {
-      data = msg.split(" ");
-      console.log(data);
-      if(data.length > 1) {
-        callSendPtxt4wrdAPI(sender_psid, data[1], data[2]);
-      }
-    }
-    else if(msg.includes("MPIN")) {
-      data = msg.split(" ");
-      console.log(data);
-      if(data.length > 0) {
-        mpinVerify(sender_psid, data[1]);
-      }
+      command(sender_psid, data);
     }
     else if(msg.includes("PTXT")) {
       data = msg.split(" ");
@@ -286,21 +270,79 @@ function command(sender_psid, command) {
     "fb_id": sender_psid,
     "command": command
   }
+  newCache = new cache.Cache();
+  var url = API_URL + "/api/v1/load/command";
+  request({
+    "uri": url,
+    "method": "GET",
+    "json": request_body
+  }, (err, res, body) => {
+    if (!err) {
+
+      var status = parseInt(body['status']);
+      var message = body['message'];
+
+      console.log("status: " + status);
+      console.log("message: " + message);
+
+      if(status != 200) {
+        handleMessageSend(sender_psid, message);
+        return false;
+      }
+
+      var topup_id = body['topup_id'];
+      var mobile = body['mobile'];
+      var amount = body['amount'];
+
+      newCache.put('topup_id', topup_id);
+      newCache.put('mobile', mobile);
+      newCache.put('amount', amount);
+
+      console.log("topup_id: " + newCache.get('topup_id'));
+      console.log("mobile: " + newCache.get('mobile'));
+      console.log("amount: " + newCache.get('amount'));
+
+      sender_fbuid = sender_psid;
+      handleMessageSend(sender_psid, message);
+    }
+    else {
+      console.error("Unable to send message:" + err);
+      stringMSG = "Unable to send message:" + err;
+      handleMessageSend(sender_psid, stringMSG);
+    }
+  });
+}
+
+function command_verify(sender_psid) {
+
+  let request_body = {
+    "fb_id": sender_psid,
+    "network": "SMART",
+    "transaction": newCache.get('topup_id'),
+    "mobile": newCache.get('mobile'),
+    "amount": newCache.get('amount')
+  }
+  console.error(request_body);
 
   request({
-    "uri": API_URL + "/api/v1/command",
+    "uri": API_URL + "/api/v1/load/verify",
     "method": "GET",
     "json": request_body
   }, (err, res, body) => {
     if (!err) {
       var status = parseInt(body['status']);
       var message = body['message'];
-      console.log(message);
+      console.log("status: " + status);
+      console.log("message: " + message);
+      if(status == 201) {
+        reload_test();
+        return false;
+      }
+
       if(status != 200) {
         handleMessageSend(sender_psid, message);
         return false;
       }
-
       sender_fbuid = sender_psid;
       handleMessageSend(sender_psid, message);
     }

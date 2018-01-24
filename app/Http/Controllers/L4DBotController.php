@@ -89,6 +89,7 @@ class L4DBotController extends Controller
       $command = $request->command;
 
       $dealer = DB::select("SELECT * FROM tbl_dealers WHERE facebook_id = '{$fb_id}' OR mobile = '{$fb_id}';");
+
       if(COUNT($dealer) == 0) {
         return array(
           'status' => 401,
@@ -96,25 +97,31 @@ class L4DBotController extends Controller
         );
       }
 
-      if (strpos($command, 'WBAL') !== false) {
-        return $this->wbal();
-      }
-
       if (strpos($command, 'LOAD') !== false) {
+
         $commands = explode(" ", $command);
-        if(COUNT($commands) > 2) {
-          return $this->execute_load(
-            $dealer,
-            $commands
-          );
+
+        if(COUNT($commands) > 1 && COUNT($commands) == 2) {
+            return $this->wbal();
         }
+
+        if(COUNT($commands) > 2 && COUNT($commands) == 3) {
+            return $this->execute_load(
+              $dealer,
+              $commands
+            );
+        }
+
         return array(
           'status' => 404,
           'message' => "Invalid command. Please try again."
         );
       }
 
-      return $commands;
+      return array(
+        'status' => 404,
+        'message' => "Hello\r\nHow may we help you?"
+      );
     }
 
     public function wbal() {
@@ -141,8 +148,23 @@ class L4DBotController extends Controller
     public function execute_load($dealer, $commands) {
         $target = $commands[2];
         $amount = $commands[1];
-        $param = "target={$target}&amount={$amount}";
-        $json = $helper->curl_execute(null, "/SMARTLoad.aspx?{$param}");
+        // $param = "target={$target}&amount={$amount}";
+        // $json = $helper->curl_execute(null, "/SMARTLoad.aspx?{$param}");
+
+        $description = "Commit Approved And Queued For Processes";
+        if (strpos($description, 'Commit Approved And Queued For Processes') !== false) {
+          $description = "Your request is being processed.\r\n\r\n";
+          $description .= "Please wait 5 or 20 seconds for the SMS Confirmation.\r\n\r\n";
+          $description .= "Note: Sometimes the SMS Confirmation for load depends on the NETWORK.";
+        }
+
+        $json = array(
+          "status" => 200,
+          "message" => $description,
+          "topup_id" => "D64CF71E15CB29060740C4CB2214E6C5045F3233"
+          "mobile" => "09995233848",
+          "amount" => "5"
+        );
         return $json;
     }
 
