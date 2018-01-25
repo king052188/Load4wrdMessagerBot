@@ -146,38 +146,44 @@ class L4DBotController extends Controller
     }
 
     public function execute_load($dealer, $commands) {
-        $target = $commands[2];
-        $amount = $commands[1];
-        // $param = "target={$target}&amount={$amount}";
-        // $json = $helper->curl_execute(null, "/SMARTLoad.aspx?{$param}");
+      $helper = new L4DHelper();
+      $target = $commands[2];
+      $amount = $commands[1];
 
-        $description = "Commit Approved And Queued For Processes";
-        if (strpos($description, 'Commit Approved And Queued For Processes') !== false) {
-          $description = "Your request is being processed.\r\n\r\n";
-          $description .= "Please wait 5 or 20 seconds for the SMS Confirmation.\r\n\r\n";
-          $description .= "Note: Sometimes the SMS Confirmation for load depends on the NETWORK.";
-        }
+      $param = "target={$target}&amount={$amount}";
+      $load_results = $helper->curl_execute(null, "/SMARTLoad.aspx?{$param}");
 
-        $json = array(
-          "status" => 200,
-          "message" => $description,
-          "topup_id" => "D64CF71E15CB29060740C4CB2214E6C5045F3233"
-          "mobile" => "09995233848",
-          "amount" => "5"
-        );
-        return $json;
+      $description = $load_results["commitResultCodeDesc"];
+      $topup_id = $load_results["topupSessionID"];
+
+      if (strpos($description, 'Commit Approved And Queued For Processes') !== false) {
+        $description = "Your request is being processed.\r\n\r\n";
+        $description .= "Your Transaction#: {$topup_id}\r\n\r\n";
+        $description .= "Please wait 5 or 20 seconds for the SMS Confirmation.\r\n\r\n";
+        $description .= "Note: Sometimes the SMS Confirmation for load depends on the NETWORK.";
+      }
+
+      $json = array(
+        "status" => 200,
+        "message" => $description,
+        "topup_id" => $topup_id,
+        "mobile" => $target,
+        "amount" => $amount
+      );
+      return $json;
     }
 
     public function verify_load(Request $request) {
       $fb_id = $request->fb_id;
       $network = $request->network;
       $transaction = $request->transaction;
+      $amount = (float)$request->amount;
 
       $dealer = DB::select("SELECT * FROM tbl_dealers WHERE facebook_id = '{$fb_id}' OR mobile = '{$fb_id}';");
       if(COUNT($dealer) == 0) {
         return array(
           'status' => 401,
-          'message' => "Oops, your facebook ID did not found to our system."
+          'message' => "Oops, your facebook ID did not found in our system."
         );
       }
 
@@ -198,8 +204,14 @@ class L4DBotController extends Controller
     }
 
     public function smart_response($request, $json) {
+      $transaction = $request->transaction;
       $mobile = $request->mobile;
       $amount = (float)$request->amount;
+
+      // return array(
+      //   'status' => 201,
+      //   'message' => "Need to reverify again."
+      // );
 
       if (strpos($json["ResultCode"], '10') !== false) {
         return array(
@@ -222,7 +234,7 @@ class L4DBotController extends Controller
               'message' => "Oops, the load amount did not match to the transaction."
             );
           }
-          $msg = "₱" . $json["Amount"] . " pesos has been loaded to " . $json["TargetNo"] . ". Thank You!";
+          $msg = "LOAD NOTIFICATION\r\n\r\nTransaction# {$transaction}\r\n\r\nYour load request amount ₱" . $json["Amount"] . " pesos has been loaded to " . $json["TargetNo"] . ". Thank You!";
           return array(
             'status' => 200,
             'message' => $msg,

@@ -13,6 +13,8 @@ const API_URL = settings.API_URL;
 const API_SMS = settings.API_SMS;
 var newCache;
 var sender_fbuid;
+var count = 0;
+var timer_sleep = 1500;
 
 // Test
 app.get('/test', (req, res) => {
@@ -266,6 +268,7 @@ function register(sender_psid, code) {
 }
 
 function command(sender_psid, command) {
+  sender_fbuid = sender_psid;
   let request_body = {
     "fb_id": sender_psid,
     "command": command
@@ -301,9 +304,8 @@ function command(sender_psid, command) {
       console.log("topup_id: " + newCache.get('topup_id'));
       console.log("mobile: " + newCache.get('mobile'));
       console.log("amount: " + newCache.get('amount'));
-
-      sender_fbuid = sender_psid;
       handleMessageSend(sender_psid, message);
+      setTimeout(reverify_load_command, 3000);
     }
     else {
       console.error("Unable to send message:" + err);
@@ -314,7 +316,7 @@ function command(sender_psid, command) {
 }
 
 function command_verify(sender_psid) {
-
+  sender_fbuid = sender_psid;
   let request_body = {
     "fb_id": sender_psid,
     "network": "SMART",
@@ -322,7 +324,7 @@ function command_verify(sender_psid) {
     "mobile": newCache.get('mobile'),
     "amount": newCache.get('amount')
   }
-  console.error(request_body);
+  console.log(request_body);
 
   request({
     "uri": API_URL + "/api/v1/load/verify",
@@ -330,20 +332,19 @@ function command_verify(sender_psid) {
     "json": request_body
   }, (err, res, body) => {
     if (!err) {
+      console.log(body);
       var status = parseInt(body['status']);
       var message = body['message'];
       console.log("status: " + status);
       console.log("message: " + message);
       if(status == 201) {
-        reload_test();
+        setTimeout(reverify_load_command, 2000);
         return false;
       }
-
       if(status != 200) {
         handleMessageSend(sender_psid, message);
         return false;
       }
-      sender_fbuid = sender_psid;
       handleMessageSend(sender_psid, message);
     }
     else {
@@ -354,13 +355,10 @@ function command_verify(sender_psid) {
   });
 }
 
-var count = 0;
-function reload_test() {
-  console.log(`arg was => ${sender_fbuid}`);
-  handleMessageSend(sender_fbuid, "Sent " + count);
-  count++;
 
-  setTimeout(reload_test, 1500);
+function reverify_load_command() {
+  console.log(`arg was => ${sender_fbuid}`);
+  command_verify(sender_fbuid);
 }
 
 
