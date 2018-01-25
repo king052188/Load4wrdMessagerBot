@@ -177,7 +177,6 @@ class L4DBotController extends Controller
       $fb_id = $request->fb_id;
       $network = $request->network;
       $transaction = $request->transaction;
-      $amount = (float)$request->amount;
 
       $dealer = DB::select("SELECT * FROM tbl_dealers WHERE facebook_id = '{$fb_id}' OR mobile = '{$fb_id}';");
       if(COUNT($dealer) == 0) {
