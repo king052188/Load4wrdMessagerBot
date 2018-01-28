@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Dealer;
 use App\DealerType;
 use App\Wallet;
+use App\Command;
 use App\SMSQueue;
 use Exception;
 
@@ -17,8 +18,30 @@ class L4DHelper extends Controller
 
     public static $company_name = "PollyStore";
 
+    public function transaction_number() {
+      return date("ymd") . substr(number_format(time() * rand(), 0,'',''), 0, 10);
+    }
+
+    public function trans_num() {
+      $num = null;
+      $w = null;
+
+      do {
+        $num = $this->transaction_number();
+        $w = Wallet::where('transaction', $num)->first();
+      }while($w != null);
+
+      return $num;
+    }
+
     public function one_time_password() {
       return substr(number_format(time() * rand(),0,'',''),0,6);
+    }
+
+    public function get_load_command($network, $amount) {
+
+      $q = Command::where('network', (int)$network)->where('custom_cmd', $amount)->first();
+
     }
 
     public function message($title, $mobile, $customize = null) {
@@ -41,15 +64,30 @@ class L4DHelper extends Controller
       return $s->save();
     }
 
-    public function update_wallet($duid, $transaction, $description, $amount) {
-      $s = new SMSQueue();
+    public function update_wallet($duid, $description, $amount) {
+      $trans = $this->trans_num();
+
+      $s = new Wallet();
       $s->dealer_id = $duid;
-      $s->transaction = $transaction;
+      $s->transaction = $trans;
       $s->description = $description;
       $s->amount = $amount;
       $s->type = 0;
       $s->status = 0;
-      return $s->save();
+
+      if($s->save()) {
+        return array(
+          "status" => 200,
+          "transaction" => $trans,
+          "last_id" => $s->id
+        );
+      }
+
+      return array(
+        "status" => 500,
+        "transaction" => null,
+        "last_id" => -1
+      );
     }
 
     public function curl_execute($data, $path) {

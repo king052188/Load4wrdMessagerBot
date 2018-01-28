@@ -7,6 +7,7 @@ use App\Dealer;
 use App\DealerType;
 use App\Wallet;
 use App\SMSQueue;
+use App\Command;
 use Carbon\Carbon;
 use DB;
 
@@ -159,7 +160,7 @@ class L4DBotController extends Controller
       if (strpos($description, 'Commit Approved And Queued For Processes') !== false) {
         $description = "Your request is being processed.\r\n\r\n";
         $description .= "Your Transaction#: {$topup_id}\r\n\r\n";
-        $description .= "Please wait 5 or 20 seconds for the SMS Confirmation.\r\n\r\n";
+        $description .= "Please wait 3 or 10 seconds for the SMS Confirmation.\r\n\r\n";
         $description .= "Note: Sometimes the SMS Confirmation for load depends on the NETWORK.";
       }
 

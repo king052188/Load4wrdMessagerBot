@@ -11,6 +11,9 @@
 |
 */
 
+
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/transaction', 'L4DHelper@trans_num');
