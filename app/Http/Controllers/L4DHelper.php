@@ -6,17 +6,38 @@ use Illuminate\Http\Request;
 use App\Dealer;
 use App\DealerType;
 use App\Wallet;
-use App\Command;
+use App\ProductCode;
 use App\SMSQueue;
+use DB;
 use Exception;
 
 
 class L4DHelper extends Controller
 {
     //
-    public static $load_api = "api-load4wrd.kpa.ph";
+    public static $load_api = "staging.kpa.ph:8066";
 
     public static $company_name = "PollyStore";
+
+    // static method
+
+    public static function network($value) {
+      $net = 0;
+      switch ($value) {
+        case 'SMART':
+          $net = 1;
+          break;
+        case 'GLOBE':
+          $net = 2;
+          break;
+        default:
+          $net = 3;
+          break;
+      }
+      return $net;
+    }
+
+    // instance method
 
     public function transaction_number() {
       return date("ymd") . substr(number_format(time() * rand(), 0,'',''), 0, 10);
@@ -38,10 +59,18 @@ class L4DHelper extends Controller
       return substr(number_format(time() * rand(),0,'',''),0,6);
     }
 
-    public function get_load_command($network, $amount) {
-
-      $q = Command::where('network', (int)$network)->where('custom_cmd', $amount)->first();
-
+    public function get_load_command($network, $prod_code) {
+      $q = DB::select("
+        SELECT * FROM
+        tbl_load_product_codes
+        WHERE network = {$network}
+        AND custom_cmd = '{$prod_code}'
+      ");
+      $count = COUNT($q);
+      return array(
+        "status" => $count > 0 ? 200 : 404,
+        "data" => $count > 0 ? $q : null
+      );
     }
 
     public function message($title, $mobile, $customize = null) {

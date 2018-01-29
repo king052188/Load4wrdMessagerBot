@@ -7,7 +7,7 @@ use App\Dealer;
 use App\DealerType;
 use App\Wallet;
 use App\SMSQueue;
-use App\Command;
+use App\ProductCode;
 use Carbon\Carbon;
 use DB;
 
@@ -87,6 +87,7 @@ class L4DBotController extends Controller
       $dt = Carbon::now()->toDateTimeString();
 
       $fb_id = $request->fb_id;
+      $network = $request->network;
       $command = $request->command;
 
       $dealer = DB::select("SELECT * FROM tbl_dealers WHERE facebook_id = '{$fb_id}' OR mobile = '{$fb_id}';");
@@ -109,6 +110,7 @@ class L4DBotController extends Controller
         if(COUNT($commands) > 2 && COUNT($commands) == 3) {
             return $this->execute_load(
               $dealer,
+              $network,
               $commands
             );
         }
@@ -146,31 +148,53 @@ class L4DBotController extends Controller
 
     }
 
-    public function execute_load($dealer, $commands) {
+    public function execute_load($dealer, $network, $commands) {
       $helper = new L4DHelper();
       $target = $commands[2];
-      $amount = $commands[1];
+      $prod_code = $commands[1];
 
-      $param = "target={$target}&amount={$amount}";
-      $load_results = $helper->curl_execute(null, "/SMARTLoad.aspx?{$param}");
+      $product_codes = $helper->get_load_command(
+        L4DHelper::network($network),
+        $prod_code
+      );
 
-      $description = $load_results["commitResultCodeDesc"];
-      $topup_id = $load_results["topupSessionID"];
+      $keyword = $product_codes["data"][0]->keyword;
 
-      if (strpos($description, 'Commit Approved And Queued For Processes') !== false) {
-        $description = "Your request is being processed.\r\n\r\n";
-        $description .= "Your Transaction#: {$topup_id}\r\n\r\n";
-        $description .= "Please wait 3 or 10 seconds for the SMS Confirmation.\r\n\r\n";
-        $description .= "Note: Sometimes the SMS Confirmation for load depends on the NETWORK.";
+      $amount = (float)$product_codes["data"][0]->amount;
+
+      $param = "network={$network}&target={$target}&code={$keyword}";
+
+      $load_results = $helper->curl_execute(null, "/execute-load-command.aspx?{$param}");
+      $description = null;
+
+      if($load_results["status"] == 200) {
+        $committed = $load_results["committed"];
+        $verified = $load_results["verified"];
+        $topup_id = $committed["topupSessionID"];
+
+        if (strpos($verified["TransactionStatus"], 'SUCCESSFUL') !== false) {
+          $description = "Your request is being processed.\r\n\r\n";
+          $description .= "Your Transaction#: {$topup_id}\r\n\r\n";
+          $description .= "Please wait 3 or 10 seconds for the SMS Confirmation.\r\n\r\n";
+          $description .= "Note: Sometimes the SMS Confirmation for load depends on the NETWORK.";
+        }
+
+        $json = array(
+          "status" => 200,
+          "message" => $description,
+          "mobile" => $target,
+          "amount" => $amount
+        );
+      }
+      else {
+        $json = array(
+          "status" => 500,
+          "message" => "Your request did not proceed.",
+          "mobile" => $target,
+          "amount" => $amount
+        );
       }
 
-      $json = array(
-        "status" => 200,
-        "message" => $description,
-        "topup_id" => $topup_id,
-        "mobile" => $target,
-        "amount" => $amount
-      );
       return $json;
     }
 

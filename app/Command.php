@@ -3,6 +3,6 @@
 use Illuminate\Auth\Authenticatable;
 use Illuminate\Database\Eloquent\Model;
 
-class Command extends \Eloquent {
-    protected $table = 'ptxt_load_command';
+class ProductCode extends \Eloquent {
+    protected $table = 'tbl_load_product_codes';
 }

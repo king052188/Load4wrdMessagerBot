@@ -16,4 +16,4 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/transaction', 'L4DHelper@trans_num');
+Route::get('/t/{network}/{code}', 'L4DHelper@get_load_command');
