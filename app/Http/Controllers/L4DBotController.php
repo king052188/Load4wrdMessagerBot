@@ -148,15 +148,18 @@ class L4DBotController extends Controller
 
     public function execute_load($dealer, $network, $commands) {
 
+      $company_name = L4DHelper::$company_name;
       $helper = new L4DHelper();
+      $duid = $dealer[0]->Id;
       $fb_id = $dealer[0]->facebook_id;
       $dealer_mobile = $dealer[0]->mobile;
       $target = $commands[2];
-      $prod_code = $commands[1];
+      $code = $commands[1];
 
+      // product codes
       $product_codes = $helper->get_load_command(
         L4DHelper::network($network),
-        $prod_code
+        $code
       );
 
       if($product_codes["status"] > 200) {
@@ -171,30 +174,44 @@ class L4DBotController extends Controller
         );
       }
 
+      // check the wallet of the member if enough to load
       $dealer_wallets = $helper->get_wallet_summary($dealer[0]->Id);
+      $prod_code_keyword = $product_codes["data"][0]->keyword;
       $prod_code_amount = (float)$product_codes["data"][0]->amount;
       $dealer_wallet = (float)$dealer_wallets["wallet"][0]->available;
 
+      // if wallet is below 5 pesos
       if($dealer_wallet <= 5) {
         return array(
           "status" => 401,
           "message" => "Your wallet available is less than ₱5 pesos. Please reload to be able to load.",
           "mobile" => $target,
-          "amount" => $prod_code
+          "amount" => $prod_code_keyword
         );
       }
 
+      // if amount load grather than wallet of member
       if($prod_code_amount > $dealer_wallet) {
         return array(
-          "status" => 401,
+          "status" => 402,
           "message" => "Your wallet is not enough to load amounting ₱{$prod_code_amount} pesos. Please reload to be able to load.",
           "mobile" => $target,
-          "amount" => $prod_code
+          "amount" => $prod_code_keyword
         );
       }
 
-      $company_name = L4DHelper::$company_name;
-      $transaction = $helper->trans_num();
+      // update wallet of the member
+      $wallet = $helper->add_wallet($duid, "BUY", $prod_code_amount);
+      if($wallet["status"] > 200) {
+        return array(
+          "status" => 403,
+          "message" => "Oops. Something went wrong with Telcom. Please try again.",
+          "mobile" => $target,
+          "amount" => $prod_code_keyword
+        );
+      }
+      $transaction = $wallet["transaction"];
+
       $otp = (int)$helper->one_time_password();
       $helper->sms_queue(
         $dealer_mobile,
@@ -211,13 +228,14 @@ class L4DBotController extends Controller
         'facebook_id' => $fb_id,
         'transaction_number' => $transaction,
         'target_mobile' => $target,
-        'product_code' => $prod_code,
+        'product_code' => $prod_code_keyword,
         'load_amount' => $prod_code_amount,
         'one_time_password' => $otp
       );
     }
 
     public function proceed_load_request(Request $request) {
+      $helper = new L4DHelper();
       $fb_id = $request->fb_id;
       $transaction = $request->transaction;
       $network = $request->network;
@@ -230,16 +248,16 @@ class L4DBotController extends Controller
       $description = null;
 
       if($load_results["status"] == 200) {
+        $w = $helper->update_wallet($transaction, 1);
+
         $committed = $load_results["committed"];
         $verified = $load_results["verified"];
         $topup_id = $committed["topupSessionID"];
 
-        if (strpos($verified["TransactionStatus"], 'SUCCESSFUL') !== false) {
-          $description = "Your request is being processed.\r\n\r\n";
-          $description .= "Your Transaction#: {$topup_id}\r\n\r\n";
-          $description .= "Please wait 3 or 10 seconds for the SMS Confirmation.\r\n\r\n";
-          $description .= "Note: Sometimes the SMS Confirmation for load depends on the NETWORK.";
-        }
+        $description = "Your request is being processed.\r\n\r\n";
+        $description .= "Your Transaction#: {$topup_id}\r\n\r\n";
+        $description .= "Please wait 3 or 10 seconds for the SMS Confirmation.\r\n\r\n";
+        $description .= "Note: Sometimes the SMS Confirmation for load depends on the NETWORK.";
 
         $json = array(
           "status" => 200,
@@ -259,6 +277,24 @@ class L4DBotController extends Controller
 
       return $json;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     public function verify_load(Request $request) {
       $fb_id = $request->fb_id;

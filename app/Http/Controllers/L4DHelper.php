@@ -110,7 +110,7 @@ class L4DHelper extends Controller
       return $s->save();
     }
 
-    public function update_wallet($duid, $description, $amount) {
+    public function add_wallet($duid, $description, $amount) {
       $trans = $this->trans_num();
 
       $s = new Wallet();
@@ -134,6 +134,18 @@ class L4DHelper extends Controller
         "transaction" => null,
         "last_id" => -1
       );
+    }
+
+    public function update_wallet($trans, $status = 1) {
+
+      $w = Wallet::where('transaction', $trans)
+          ->update( ["status" => $status] );
+
+      if($w) {
+        return true;
+      }
+
+      return false;
     }
 
     public function curl_execute($data, $path) {
