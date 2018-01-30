@@ -110,6 +110,13 @@ function handleMessage(sender_psid, received_message) {
       console.log(data);
       command(sender_psid, data);
     }
+    else if(msg.includes("OTP")) {
+      data = msg.split(" ");
+      console.log(data);
+      if(data.length > 0) {
+        otp_validation(sender_psid, data[1]);
+      }
+    }
     else if(msg.includes("PTXT")) {
       data = msg.split(" ");
       console.log(data);
@@ -271,7 +278,8 @@ function command(sender_psid, command) {
   sender_fbuid = sender_psid;
   let request_body = {
     "fb_id": sender_psid,
-    "command": command
+    "command": command,
+    "network": "SMART"
   }
   newCache = new cache.Cache();
   var url = API_URL + "/api/v1/load/command";
@@ -281,31 +289,37 @@ function command(sender_psid, command) {
     "json": request_body
   }, (err, res, body) => {
     if (!err) {
-
       var status = parseInt(body['status']);
       var message = body['message'];
 
       console.log("status: " + status);
       console.log("message: " + message);
 
-      if(status != 200) {
+      if(status == 404) {
         handleMessageSend(sender_psid, message);
         return false;
       }
 
-      var topup_id = body['topup_id'];
-      var mobile = body['mobile'];
-      var amount = body['amount'];
+      var trans_num = body['transaction_number'];
+      var target_mobile = body['target_mobile'];
+      var product_code = body['product_code'];
+      var load_amount = body['load_amount'];
+      var one_time_password = body['one_time_password'];
 
-      newCache.put('topup_id', topup_id);
-      newCache.put('mobile', mobile);
-      newCache.put('amount', amount);
+      newCache.put('trans_num', trans_num);
+      newCache.put('target_mobile', target_mobile);
+      newCache.put('product_code', product_code);
+      newCache.put('load_amount', load_amount);
+      newCache.put('one_time_password', one_time_password);
 
-      console.log("topup_id: " + newCache.get('topup_id'));
-      console.log("mobile: " + newCache.get('mobile'));
-      console.log("amount: " + newCache.get('amount'));
+      console.log("trans_num: " + newCache.get('trans_num'));
+      console.log("target_mobile: " + newCache.get('target_mobile'));
+      console.log("product_code: " + newCache.get('product_code'));
+      console.log("load_amount: " + newCache.get('load_amount'));
+      console.log("one_time_password: " + newCache.get('one_time_password'));
+
       handleMessageSend(sender_psid, message);
-      setTimeout(reverify_load_command, 3000);
+      
     }
     else {
       console.error("Unable to send message:" + err);
@@ -314,6 +328,32 @@ function command(sender_psid, command) {
     }
   });
 }
+
+function otp_validation(sender_psid, users_mpin) {
+  var cache_mpin = 0;
+  try{
+    cache_mpin = newCache.get('one_time_password');
+    if(parseInt(cache_mpin) == parseInt(users_mpin)) {
+      handleMessageSend(sender_psid, "Great. Your load is being processed.");
+    }
+    else {
+      handleMessageSend(sender_psid, "Your One-Time-Password is not valid. Please check your mobile.");
+    }
+
+  } catch( err ){
+    handleMessageSend(sender_psid, "You don't have any load request yet.");
+  }
+  console.log("cache_mpin: " + cache_mpin);
+  console.log("users_mpin: " + users_mpin);
+}
+
+
+
+
+
+
+
+
 
 function command_verify(sender_psid) {
   sender_fbuid = sender_psid;
@@ -354,7 +394,6 @@ function command_verify(sender_psid) {
     }
   });
 }
-
 
 function reverify_load_command() {
   console.log(`arg was => ${sender_fbuid}`);

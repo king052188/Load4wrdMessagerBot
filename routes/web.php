@@ -16,4 +16,6 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/t/{id}', 'L4DHelper@get_wallet_summary');
+
 Route::get('/t/{network}/{code}', 'L4DHelper@get_load_command');

@@ -73,6 +73,23 @@ class L4DHelper extends Controller
       );
     }
 
+    public function get_wallet_summary($dealer_id) {
+      $d_uid = (int)$dealer_id;
+      $str = DB::select("
+        SELECT
+          (SELECT CASE WHEN SUM(amount) > 0 THEN SUM(amount) ELSE 0 END FROM tbl_wallet WHERE dealer_id = {$d_uid} AND type = 1 AND status = 1) AS credits,
+          (SELECT CASE WHEN SUM(amount) > 0 THEN SUM(amount) ELSE 0 END FROM tbl_wallet WHERE dealer_id = {$d_uid} AND type = 0 AND status = 1) AS debits,
+          (
+          	(SELECT CASE WHEN SUM(amount) > 0 THEN SUM(amount) ELSE 0 END FROM tbl_wallet WHERE dealer_id = {$d_uid} AND type = 1 AND status = 1) -
+              (SELECT CASE WHEN SUM(amount) > 0 THEN SUM(amount) ELSE 0 END FROM tbl_wallet WHERE dealer_id = {$d_uid} AND type = 0 AND status = 1)
+          ) AS available;
+      ");
+
+      return array(
+        "wallet" => $str
+      );
+    }
+
     public function message($title, $mobile, $customize = null) {
       switch ($title) {
         case 'welcome':

@@ -37,7 +37,7 @@ class L4DBotController extends Controller
       $otp = (int)$helper->one_time_password();
       $helper->sms_queue(
         $user_mobile,
-        $helper->message("otp", $user_mobile, "PollyStore verification code: {$otp}. Please do not share this code with anyone. Thank You!")
+        $helper->message("otp", $user_mobile, "{$company_name} verification code: {$otp}. Please do not share this code with anyone. Thank You!")
       );
 
       return array(
@@ -100,9 +100,7 @@ class L4DBotController extends Controller
       }
 
       if (strpos($command, 'LOAD') !== false) {
-
         $commands = explode(" ", $command);
-
         if(COUNT($commands) > 1 && COUNT($commands) == 2) {
             return $this->wbal();
         }
@@ -149,7 +147,10 @@ class L4DBotController extends Controller
     }
 
     public function execute_load($dealer, $network, $commands) {
+
       $helper = new L4DHelper();
+      $fb_id = $dealer[0]->facebook_id;
+      $dealer_mobile = $dealer[0]->mobile;
       $target = $commands[2];
       $prod_code = $commands[1];
 
@@ -158,12 +159,73 @@ class L4DBotController extends Controller
         $prod_code
       );
 
-      $keyword = $product_codes["data"][0]->keyword;
+      if($product_codes["status"] > 200) {
+        return array(
+          'status' => 404,
+          'message' => "Your command is not valid. Please type HELP then press enter.",
+          'facebook_id' => $fb_id,
+          'target_mobile' => $target,
+          'product_code' => $prod_code,
+          'load_amount' => 0,
+          'one_time_password' => null
+        );
+      }
 
-      $amount = (float)$product_codes["data"][0]->amount;
+      $dealer_wallets = $helper->get_wallet_summary($dealer[0]->Id);
+      $prod_code_amount = (float)$product_codes["data"][0]->amount;
+      $dealer_wallet = (float)$dealer_wallets["wallet"][0]->available;
+
+      if($dealer_wallet <= 5) {
+        return array(
+          "status" => 401,
+          "message" => "Your wallet available is less than ₱5 pesos. Please reload to be able to load.",
+          "mobile" => $target,
+          "amount" => $prod_code
+        );
+      }
+
+      if($prod_code_amount > $dealer_wallet) {
+        return array(
+          "status" => 401,
+          "message" => "Your wallet is not enough to load amounting ₱{$prod_code_amount} pesos. Please reload to be able to load.",
+          "mobile" => $target,
+          "amount" => $prod_code
+        );
+      }
+
+      $company_name = L4DHelper::$company_name;
+      $transaction = $helper->trans_num();
+      $otp = (int)$helper->one_time_password();
+      $helper->sms_queue(
+        $dealer_mobile,
+        $helper->message("otp", $dealer_mobile, "{$company_name} One-Time-Password or OTP here: {$otp}. Please do not share this code with anyone.")
+      );
+
+      $message = "Your about to load this mobile# {$target} with amount ₱{$prod_code_amount} pesos.\r\n\r\n";
+      $message .= "Here is your transaction# {$transaction} to proceed your request, please type CODE<space>One-Time-Password then press enter.\r\n\r\n";
+      $message .= "The OTP or One-Time-Passwrd has been sent to your mobile#. Please do not share this code with anyone.";
+
+      return array(
+        'status' => 200,
+        'message' => $message,
+        'facebook_id' => $fb_id,
+        'transaction_number' => $transaction,
+        'target_mobile' => $target,
+        'product_code' => $prod_code,
+        'load_amount' => $prod_code_amount,
+        'one_time_password' => $otp
+      );
+    }
+
+    public function proceed_load_request(Request $request) {
+      $fb_id = $request->fb_id;
+      $transaction = $request->transaction;
+      $network = $request->network;
+      $target = $request->target;
+      $keyword = $request->code;
+      $amount = (float)$request->amount;
 
       $param = "network={$network}&target={$target}&code={$keyword}";
-
       $load_results = $helper->curl_execute(null, "/execute-load-command.aspx?{$param}");
       $description = null;
 
