@@ -17,6 +17,7 @@ class L4DBotController extends Controller
     }
 
     public function verification(Request $request) {
+      $company_name = L4DHelper::$company_name;
       $helper = new L4DHelper();
 
       $fb_id = $request->fb_id;
@@ -37,7 +38,7 @@ class L4DBotController extends Controller
       $otp = (int)$helper->one_time_password();
       $helper->sms_queue(
         $user_mobile,
-        $helper->message("otp", $user_mobile, "{$company_name} verification code: {$otp}. Please do not share this code with anyone. Thank You!")
+        $helper->message("otp", $user_mobile, "{$otp} is your {$company_name} confirmation code. Please do not share this code with anyone. Thank You!")
       );
 
       return array(
@@ -215,7 +216,7 @@ class L4DBotController extends Controller
       $otp = (int)$helper->one_time_password();
       $helper->sms_queue(
         $dealer_mobile,
-        $helper->message("otp", $dealer_mobile, "{$company_name} One-Time-Password or OTP here: {$otp}. Please do not share this code with anyone.")
+        $helper->message("otp", $dealer_mobile, "{$otp} is your {$company_name} One-Time-Password or OTP. Please do not share this code with anyone. Thank you!")
       );
 
       $message = "Your about to load this mobile# {$target} with amount ₱{$prod_code_amount} pesos.\r\n\r\n";
