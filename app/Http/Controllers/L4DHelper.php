@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Dealer;
 use App\DealerType;
 use App\Wallet;
+use App\Loading;
 use App\ProductCode;
 use App\SMSQueue;
 use DB;
@@ -49,7 +50,7 @@ class L4DHelper extends Controller
 
       do {
         $num = $this->transaction_number();
-        $w = Wallet::where('transaction', $num)->first();
+        $w = Wallet::where('reference', $num)->first();
       }while($w != null);
 
       return $num;
@@ -111,11 +112,11 @@ class L4DHelper extends Controller
     }
 
     public function add_wallet($duid, $description, $amount) {
-      $trans = $this->trans_num();
+      $ref_number = $this->trans_num();
 
       $s = new Wallet();
       $s->dealer_id = $duid;
-      $s->transaction = $trans;
+      $s->reference = $ref_number;
       $s->description = $description;
       $s->amount = $amount;
       $s->type = 0;
@@ -124,21 +125,46 @@ class L4DHelper extends Controller
       if($s->save()) {
         return array(
           "status" => 200,
-          "transaction" => $trans,
+          "reference" => $ref_number,
           "last_id" => $s->id
         );
       }
 
       return array(
         "status" => 500,
-        "transaction" => null,
+        "reference" => null,
         "last_id" => -1
       );
     }
 
-    public function update_wallet($trans, $status = 1) {
+    public function add_loading_transaction($ref_number, $network, $transaction, $target, $product_code, $amount) {
+      $l = new Loading();
+      $l->reference = $ref_number;
+      $l->network_provider = $network;
+      $l->transaction_number = $transaction;
+      $l->target_mobile_number = $target;
+      $l->product_code = $product_code;
+      $l->amount = $amount;
+      $l->status = 1;
 
-      $w = Wallet::where('transaction', $trans)
+      if($l->save()) {
+        return array(
+          "status" => 200,
+          "reference" => $ref_number,
+          "last_id" => $l->id
+        );
+      }
+
+      return array(
+        "status" => 500,
+        "reference" => null,
+        "last_id" => -1
+      );
+    }
+
+    public function update_wallet($reference, $status = 1) {
+
+      $w = Wallet::where('reference', $reference)
           ->update( ["status" => $status] );
 
       if($w) {

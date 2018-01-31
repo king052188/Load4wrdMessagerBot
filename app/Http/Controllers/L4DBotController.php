@@ -168,7 +168,7 @@ class L4DBotController extends Controller
           'message' => "Your command is not valid. Please type HELP then press enter.",
           'facebook_id' => $fb_id,
           'target_mobile' => $target,
-          'product_code' => $prod_code,
+          'product_code' => $code,
           'load_amount' => 0,
           'one_time_password' => null
         );
@@ -210,7 +210,7 @@ class L4DBotController extends Controller
           "amount" => $prod_code_keyword
         );
       }
-      $transaction = $wallet["transaction"];
+      $reference = $wallet["reference"];
 
       $otp = (int)$helper->one_time_password();
       $helper->sms_queue(
@@ -219,14 +219,14 @@ class L4DBotController extends Controller
       );
 
       $message = "Your about to load this mobile# {$target} with amount ₱{$prod_code_amount} pesos.\r\n\r\n";
-      $message .= "Here is your transaction# {$transaction} to proceed your request, please type CODE<space>One-Time-Password then press enter.\r\n\r\n";
+      $message .= "Here is your reference# {$reference} to proceed your request, please type CODE<space>One-Time-Password then press enter.\r\n\r\n";
       $message .= "The OTP or One-Time-Passwrd has been sent to your mobile#. Please do not share this code with anyone.";
 
       return array(
         'status' => 200,
         'message' => $message,
         'facebook_id' => $fb_id,
-        'transaction_number' => $transaction,
+        'reference_number' => $reference,
         'target_mobile' => $target,
         'product_code' => $prod_code_keyword,
         'load_amount' => $prod_code_amount,
@@ -237,7 +237,7 @@ class L4DBotController extends Controller
     public function proceed_load_request(Request $request) {
       $helper = new L4DHelper();
       $fb_id = $request->fb_id;
-      $transaction = $request->transaction;
+      $reference = $request->reference;
       $network = $request->network;
       $target = $request->target;
       $keyword = $request->code;
@@ -245,17 +245,24 @@ class L4DBotController extends Controller
 
       $param = "network={$network}&target={$target}&code={$keyword}";
       $load_results = $helper->curl_execute(null, "/execute-load-command.aspx?{$param}");
-      $description = null;
 
       if($load_results["status"] == 200) {
-        $w = $helper->update_wallet($transaction, 1);
-
         $committed = $load_results["committed"];
         $verified = $load_results["verified"];
-        $topup_id = $committed["topupSessionID"];
+        $topup_transaction = $committed["topupSessionID"];
+
+        $w = $helper->update_wallet($reference, 1);
+        $l = $helper->add_loading_transaction(
+          $reference,
+          L4DHelper::network($network),
+          $topup_transaction,
+          $target,
+          $keyword,
+          $amount
+        );
 
         $description = "Your request is being processed.\r\n\r\n";
-        $description .= "Your Transaction#: {$topup_id}\r\n\r\n";
+        $description .= "Your reference#: {$reference}\r\n\r\n";
         $description .= "Please wait 3 or 10 seconds for the SMS Confirmation.\r\n\r\n";
         $description .= "Note: Sometimes the SMS Confirmation for load depends on the NETWORK.";
 
