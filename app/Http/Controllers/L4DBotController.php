@@ -13,7 +13,10 @@ use DB;
 
 class L4DBotController extends Controller
 {
+    public static $CMDPrefix;
+
     public function __construct () {
+      $this::$CMDPrefix = "LC";
     }
 
     public function verification(Request $request) {
@@ -86,9 +89,14 @@ class L4DBotController extends Controller
 
     public function command_load($request_type = "web", Request $request) {
       $dt = Carbon::now()->toDateTimeString();
-      $fb_id = IsSet($request->fb_id) ? $request->fb_id : $request->mobile;
-      $network = $request->network;
       $command = $request->command;
+      if($request_type == "web") {
+        $fb_id = $request->fb_id;
+      }
+      else {
+         $fb_id = $request->mobile;
+      }
+
       $dealer = DB::select("SELECT * FROM tbl_dealers WHERE facebook_id = '{$fb_id}' OR mobile = '{$fb_id}';");
 
       if(COUNT($dealer) == 0) {
@@ -98,18 +106,21 @@ class L4DBotController extends Controller
         );
       }
 
-      if (strpos($command, 'LOAD') !== false) {
+      if (strpos($command, $this::$CMDPrefix) !== false) {
         $commands = explode(" ", $command);
         if(COUNT($commands) > 1 && COUNT($commands) == 2) {
-            return $this->wbal();
+          if($commands[1] == "BAL" || $commands[1] == "Bal" || $commands[1] == "bal") {
+            return $this->bal($dealer);
+          }
+          return $this->wbal();
         }
 
         if(COUNT($commands) > 2 && COUNT($commands) == 3) {
+
           // sms command
           if($request_type=="sms") {
             return $this->execute_load_via_sms(
               $dealer,
-              $network,
               $commands
             );
           }
@@ -117,7 +128,6 @@ class L4DBotController extends Controller
           // web/messenger command
           return $this->execute_load(
             $dealer,
-            $network,
             $commands
           );
         }
@@ -157,8 +167,25 @@ class L4DBotController extends Controller
 
     }
 
-    public function execute_load($dealer, $network, $commands) {
+    public function bal($dealer) {
+      $helper = new L4DHelper();
 
+      $duid = $dealer[0]->Id;
+      $fb_id = $dealer[0]->facebook_id;
+
+      $dt = Carbon::now()->toDateTimeString();
+      $json = $helper->get_wallet_summary($duid);
+      $wallet = $json["wallet"][0]->available;
+
+      $msg = "Your wallet load is ₱{$wallet} as of {$dt}";
+
+      return array(
+        'status' => 200,
+        'message' => $msg
+      );
+    }
+
+    public function execute_load($dealer, $commands) {
       $company_name = L4DHelper::$company_name;
       $helper = new L4DHelper();
       $duid = $dealer[0]->Id;
@@ -167,8 +194,22 @@ class L4DBotController extends Controller
       $target = $commands[2];
       $code = $commands[1];
 
+      // check network provider
+      $network = L4DHelper::prefix($target);
+      if($network == "INVALID") {
+        return array(
+          'status' => 404,
+          'message' => "Your target mobile# is not valid. Please try again. Thank You!",
+          'facebook_id' => $fb_id,
+          'target_mobile' => $target,
+          'product_code' => $code,
+          'load_amount' => 0,
+          'one_time_password' => null
+        );
+      }
+
       // product codes
-      $product_codes = $helper->get_load_command(
+      $product_codes = $helper->get_load_keyword(
         L4DHelper::network($network),
         $code
       );
@@ -230,8 +271,8 @@ class L4DBotController extends Controller
       );
 
       $message = "Your about to load this mobile# {$target} with amount ₱{$prod_code_amount} pesos.\r\n\r\n";
-      $message .= "Here is your reference# {$reference} to proceed your request, please type CODE<space>One-Time-Password then press enter.\r\n\r\n";
-      $message .= "The OTP or One-Time-Passwrd has been sent to your mobile#. Please do not share this code with anyone.";
+      $message .= "Here is your reference# {$reference} to proceed your request, please type MPIN<space>MPINCode then press enter.\r\n\r\n";
+      $message .= "The MPIN has been sent to your mobile#. Please do not share this code with anyone.";
 
       return array(
         'status' => 200,
@@ -249,10 +290,10 @@ class L4DBotController extends Controller
       $helper = new L4DHelper();
       $fb_id = $request->fb_id;
       $reference = $request->reference;
-      $network = $request->network;
       $target = $request->target;
       $keyword = $request->code;
       $amount = (float)$request->amount;
+      $network = L4DHelper::prefix($target);
 
       $param = "network={$network}&target={$target}&code={$keyword}";
       $load_results = $helper->curl_execute(null, "/execute-load-command.aspx?{$param}");
@@ -298,7 +339,7 @@ class L4DBotController extends Controller
 
     // sms command load
 
-    public function execute_load_via_sms($dealer, $network, $commands) {
+    public function execute_load_via_sms($dealer, $commands) {
 
       $company_name = L4DHelper::$company_name;
       $helper = new L4DHelper();
@@ -308,8 +349,22 @@ class L4DBotController extends Controller
       $target = $commands[2];
       $code = $commands[1];
 
+      // check network provider
+      $network = L4DHelper::prefix($target);
+      if($network == "INVALID") {
+        return array(
+          'status' => 404,
+          'message' => "Your target mobile# is not valid. Please try again. Thank You!",
+          'facebook_id' => $fb_id,
+          'target_mobile' => $target,
+          'product_code' => $code,
+          'load_amount' => 0,
+          'one_time_password' => null
+        );
+      }
+
       // product codes
-      $product_codes = $helper->get_load_command(
+      $product_codes = $helper->get_load_keyword(
         L4DHelper::network($network),
         $code
       );

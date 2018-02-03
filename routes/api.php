@@ -27,5 +27,11 @@ Route::get('/v1/load/proceed', 'L4DBotController@proceed_load_request');
 //   Route::get('/v1/sms/load/command', 'L4DBotController@command_load');
 // });
 
+//
+
+Route::get('/v1/sms/get', 'SMSController@get_sms');
+Route::get('/v1/sms/update/{id}', 'SMSController@update_sms');
+
+
 
 Route::get('/v1/load/verify', 'L4DBotController@verify_load');

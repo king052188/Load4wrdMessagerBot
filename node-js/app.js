@@ -105,12 +105,12 @@ function handleMessage(sender_psid, received_message) {
         register(sender_psid, data[1]);
       }
     }
-    else if(msg.includes("LOAD")) {
+    else if(msg.includes("LC")) {
       data = msg;
       console.log(data);
       command(sender_psid, data);
     }
-    else if(msg.includes("OTP")) {
+    else if(msg.includes("MPIN")) {
       data = msg.split(" ");
       console.log(data);
       if(data.length > 0) {
@@ -215,7 +215,7 @@ function verify(sender_psid, mobile) {
       newCache.put('MOBILE', mobile);
       newCache.put('FACEBOOK_ID', sender_psid);
 
-      var summary = "We have sent One-Time-Password (OTP) to your mobile.\r\n\r\n";
+      var summary = "We have sent confirmation code to your mobile.\r\n\r\n";
       summary += "Please type CODE<space>6-digits then press enter\r\n\r\n";
       summary += "Example: CODE 123456 then press enter";
       console.log(newCache.get('CODE'));
@@ -278,8 +278,7 @@ function command(sender_psid, command) {
   sender_fbuid = sender_psid;
   let request_body = {
     "fb_id": sender_psid,
-    "command": command,
-    "network": "SMART"
+    "command": command
   }
   newCache = new cache.Cache();
   var url = API_URL + "/api/v1/load/command";
@@ -300,7 +299,7 @@ function command(sender_psid, command) {
         return false;
       }
 
-      var trans_num = body['transaction_number'];
+      var trans_num = body['reference_number'];
       var target_mobile = body['target_mobile'];
       var product_code = body['product_code'];
       var load_amount = body['load_amount'];
@@ -334,7 +333,8 @@ function otp_validation(sender_psid, users_mpin) {
   try{
     cache_mpin = newCache.get('one_time_password');
     if(parseInt(cache_mpin) == parseInt(users_mpin)) {
-      handleMessageSend(sender_psid, "Great. Your load is being processed.");
+      // handleMessageSend(sender_psid, "Great. Your load is being processed.");
+      command_proceed(sender_psid);
     }
     else {
       handleMessageSend(sender_psid, "Your One-Time-Password is not valid. Please check your mobile.");
@@ -345,6 +345,43 @@ function otp_validation(sender_psid, users_mpin) {
   }
   console.log("cache_mpin: " + cache_mpin);
   console.log("users_mpin: " + users_mpin);
+}
+
+function command_proceed(sender_psid) {
+
+  sender_fbuid = sender_psid;
+  let request_body = {
+    "fb_id": sender_psid,
+    "reference": newCache.get('trans_num'),
+    "target": newCache.get('target_mobile'),
+    "code": newCache.get('product_code'),
+    "amount": newCache.get('load_amount')
+  }
+  console.log(request_body);
+
+  request({
+    "uri": API_URL + "/api/v1/load/proceed",
+    "method": "GET",
+    "json": request_body
+  }, (err, res, body) => {
+    if (!err) {
+      console.log(body);
+      var status = parseInt(body['status']);
+      var message = body['message'];
+      console.log("status: " + status);
+      console.log("message: " + message);
+      if(status != 200) {
+        handleMessageSend(sender_psid, message);
+        return false;
+      }
+      handleMessageSend(sender_psid, message);
+    }
+    else {
+      console.error("Unable to send message:" + err);
+      stringMSG = "Unable to send message:" + err;
+      handleMessageSend(sender_psid, stringMSG);
+    }
+  });
 }
 
 
