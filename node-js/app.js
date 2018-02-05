@@ -1,20 +1,23 @@
-var express = require('express');
-var bodyParser =  require('body-parser');
-var request = require('request');
-var cache = require('memory-cache');
-var app = express();
+var express                   = require('express');
+var bodyParser                = require('body-parser');
+var request                   = require('request');
+var cache                     = require('memory-cache');
+var settings                  = require('./settings.js');
+var app                       = express();
+
 app.use(bodyParser.urlencoded({"extended": false}));
 app.use(bodyParser.json());
-var settings = require('./settings.js');
 
-const PAGE_ACCESS_TOKEN = settings.PAGE_ACCESS_TOKEN;
-const VERIFY_TOKEN = settings.VERIFY_TOKEN;
-const API_URL = settings.API_URL;
-const API_SMS = settings.API_SMS;
+const PAGE_ACCESS_TOKEN       = settings.PAGE_ACCESS_TOKEN; // facebook page-access-token
+const VERIFY_TOKEN            = settings.VERIFY_TOKEN; // facebook verification-token
+const ACCESS_TOKEN            = settings.ACCESS_TOKEN; // load4wrd aaccess-token
+const API_URL                 = settings.API_URL; // load4wrd api url
+const API_SMS                 = settings.API_SMS; // ptxt4wrd api url
+
 var newCache;
 var sender_fbuid;
-var count = 0;
-var timer_sleep = 1500;
+var count                     = 0;
+var timer_sleep               = 1500;
 
 // Test
 app.get('/test', (req, res) => {
@@ -318,7 +321,7 @@ function command(sender_psid, command) {
       console.log("one_time_password: " + newCache.get('one_time_password'));
 
       handleMessageSend(sender_psid, message);
-      
+
     }
     else {
       console.error("Unable to send message:" + err);
