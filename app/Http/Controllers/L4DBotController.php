@@ -306,7 +306,8 @@ class L4DBotController extends Controller
       }
 
       // update wallet of the member
-      $wallet = $helper->add_wallet($duid, "BUY", $prod_code_amount);
+      // $wallet = $helper->add_wallet($duid, "BUY", $prod_code_amount);
+      $load_log = $helper->add_load_logs($duid, "DEBIT", $prod_code_amount);
       if($wallet["status"] > 200) {
         return array(
           "status" => 403,
@@ -315,7 +316,7 @@ class L4DBotController extends Controller
           "amount" => $prod_code_keyword
         );
       }
-      $reference = $wallet["reference"];
+      $reference = $load_log["reference"];
 
       $otp = (int)$helper->one_time_password();
       $helper->sms_queue(
@@ -371,6 +372,8 @@ class L4DBotController extends Controller
         $topup_transaction = $committed["topupSessionID"];
 
         $w = $helper->update_wallet($reference, 1);
+
+        $w = $helper->add_wallet($duid, "DEBIT", $prod_code_amount);
         $l = $helper->add_loading_transaction(
           $reference,
           L4DHelper::network($network),

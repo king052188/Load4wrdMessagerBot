@@ -229,7 +229,7 @@ class L4DHelper extends Controller
       return $s->save();
     }
 
-    public function add_wallet($duid, $description, $amount) {
+    public function add_load_logs($duid, $description, $amount) {
       $ref_number = $this->trans_num();
 
       $s = new Wallet();
@@ -239,6 +239,32 @@ class L4DHelper extends Controller
       $s->amount = $amount;
       $s->type = 0;
       $s->status = 0;
+
+      if($s->save()) {
+        return array(
+          "status" => 200,
+          "reference" => $ref_number,
+          "last_id" => $s->id
+        );
+      }
+
+      return array(
+        "status" => 500,
+        "reference" => null,
+        "last_id" => -1
+      );
+    }
+
+    public function add_wallet($duid, $ref_number, $description, $amount) {
+      // $ref_number = $this->trans_num();
+
+      $s = new Wallet();
+      $s->dealer_id = $duid;
+      $s->reference = $ref_number;
+      $s->description = $description;
+      $s->amount = $amount;
+      $s->type = 0;
+      $s->status = 1;
 
       if($s->save()) {
         return array(
