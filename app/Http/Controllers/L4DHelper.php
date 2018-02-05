@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Company;
 use App\Dealer;
 use App\DealerType;
 use App\Wallet;
@@ -11,6 +12,7 @@ use App\ProductCode;
 use App\SMSQueue;
 use DB;
 use Exception;
+use Ramsey\Uuid\Uuid;
 
 
 class L4DHelper extends Controller
@@ -20,7 +22,27 @@ class L4DHelper extends Controller
 
     public static $company_name = "EnghagePro";
 
+    public static $fb_access_token = "EAAC1VxtCsysBAIz0Q01ZCnm50AwOskgTq9sgnuYoLtQ1D4tF6XMHtU6U0hRFrXEsZC3G2w798ZA9UZBEndUwrAdte5EYuOY61VqoOTYNJzZC3SBLlMDpmweOeUXNpRR1jsdk0oIPfkuCwuiorsiu6sERJauc7v3Dqxkec6ZCZAV6QZDZD";
+
     // static method
+
+    public static function access_token() {
+      $guid = null;
+      $c = null;
+      do {
+        $uuid = Uuid::uuid4();
+        $guid = $uuid->toString();
+
+
+
+      }while($c != null);
+      return $guid;
+    }
+
+    public static function get_company_info($guid) {
+      $c = Company::where('access_token', $guid)->first();
+      return $c;
+    }
 
     public static function network($value) {
       $net = 0;
@@ -270,9 +292,12 @@ class L4DHelper extends Controller
       return false;
     }
 
-    public function curl_execute($data, $path) {
+    public function curl_execute($data, $path, $custom_url = null) {
       // Email API
       $url = "http://". $this::$load_api . $path;
+      if($custom_url != null) {
+        $url = $custom_url;
+      }
 
       // Array to Json
       $to_json = json_encode($data);
@@ -285,6 +310,23 @@ class L4DHelper extends Controller
       curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
       curl_setopt($ch, CURLOPT_POSTFIELDS, $to_json);
       curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+      $result = json_decode(curl_exec($ch), true);
+      curl_close($ch);
+      return $result;
+    }
+
+    public function curl_fb_execute($user_id) {
+      // Email API
+      $url = "https://graph.facebook.com/v2.12/". $user_id . "?access_token=" . $this::$fb_access_token;
+
+      // Added JSON Header
+      $headers = array('Accept: application/json','Content-Type: application/json');
+
+      $ch = curl_init($url);
+      curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "GET");
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
       $result = json_decode(curl_exec($ch), true);
       curl_close($ch);
       return $result;
