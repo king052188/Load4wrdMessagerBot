@@ -376,9 +376,24 @@ class L4DBotController extends Controller
           $amount,
           1
         );
+
+        if($results["status"] == 200) {
+          return array(
+            "status" => 200,
+            "message" => "{$this::$user_first_name}you have transfered ₱{$amount} pesos to mobile# {$mobile}.",
+          );
+        }
+
+        return array(
+          "status" => 500,
+          "message" => "{$this::$user_first_name}something went wrong. Please try again.",
+        );
       }
 
-      dd($results);
+      return array(
+        "status" => 503,
+        "message" => "{$this::$user_first_name}something went wrong. Please try again.",
+      );
 
     }
 
