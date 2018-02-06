@@ -113,11 +113,10 @@ class L4DBotController extends Controller
       );
     }
 
-    public function command_load($access_token, $request_type = "web", Request $request) {
+    public function command_keyword($access_token, $request_type = "web", Request $request) {
       $helper = new L4DHelper();
       $company_info = L4DHelper::get_company_info($access_token);
       $dt = Carbon::now()->toDateTimeString();
-
       if($company_info == null) {
         return array(
           'status' => 400,
@@ -136,7 +135,94 @@ class L4DBotController extends Controller
       if($request_type == "web") {
         $fb_id = $request->fb_id;
         $facebook_user_info = $helper->curl_fb_execute($fb_id);
-        $this::$user_first_name = "Hello " . $facebook_user_info["first_name"] . ", ";
+        if(!IsSet($facebook_user_info["error"])) {
+          $this::$user_first_name = "Hello " . $facebook_user_info["first_name"] . ", ";
+        }
+        else {
+          $this::$user_first_name = "Hello, ";
+        }
+      }
+      else {
+         $fb_id = $request->mobile;
+      }
+
+      $dealer = $helper->get_user_info($company_id, $fb_id);
+      if(COUNT($dealer) == 0) {
+        return array(
+          'status' => 401,
+          'message' => "{$this::$user_first_name}your mobile or facebook ID did not found to our system."
+        );
+      }
+
+      if (strpos($command, $this::$CMDPrefix) !== false) {
+        $commands = explode(" ", $command);
+
+        if(COUNT($commands) > 2 && COUNT($commands) == 3) {
+
+          $data = explode("/", $commands[2]);
+          $return = [];
+
+          switch ($commands[1]) {
+            case 'REG':
+              $mobile = $data[0];
+              $amount = $data[1];
+              dd($data);
+              break;
+
+            case 'TLW':
+              $mobile = $data[0];
+              $amount = (float)$data[1];
+              $return = $this->tlw($dealer, $mobile, $amount);
+              break;
+
+            default:
+              $return = array(
+                'status' => 404,
+                'message' => "{$this::$user_first_name}\r\Invalid command, please try again."
+              );
+              break;
+          }
+          return $return;
+
+
+        }
+
+      }
+
+      return array(
+        'status' => 404,
+        'message' => "{$this::$user_first_name}\r\nHow may we help you?"
+      );
+    }
+
+    public function command_load($access_token, $request_type = "web", Request $request) {
+      $helper = new L4DHelper();
+      $company_info = L4DHelper::get_company_info($access_token);
+      $dt = Carbon::now()->toDateTimeString();
+      if($company_info == null) {
+        return array(
+          'status' => 400,
+          'message' => "Oops, Please contact your service provider.",
+          'facebook_id' => null,
+          'user_mobile' => null,
+          'one_time_password' => 0
+        );
+      }
+
+      $company_id = $company_info->Id;
+      $company_name = $company_info->business_name;
+      $command = $request->command;
+      $this::$user_first_name = "";
+
+      if($request_type == "web") {
+        $fb_id = $request->fb_id;
+        $facebook_user_info = $helper->curl_fb_execute($fb_id);
+        if(!IsSet($facebook_user_info["error"])) {
+          $this::$user_first_name = "Hello " . $facebook_user_info["first_name"] . ", ";
+        }
+        else {
+          $this::$user_first_name = "Hello, ";
+        }
       }
       else {
          $fb_id = $request->mobile;
@@ -152,6 +238,7 @@ class L4DBotController extends Controller
 
       if (strpos($command, $this::$CMDPrefix) !== false) {
         $commands = explode(" ", $command);
+
         if(COUNT($commands) > 1 && COUNT($commands) == 2) {
           if($commands[1] == "BAL" || $commands[1] == "Bal" || $commands[1] == "bal") {
             return $this->bal($dealer);
@@ -238,6 +325,63 @@ class L4DBotController extends Controller
       );
     }
 
+    public function reg_member() {
+
+    }
+
+    public function tlw($dealer, $mobile, $amount) {
+
+      $helper = new L4DHelper();
+      $duid = $dealer[0]->Id;
+      $company_id = $dealer[0]->company_id;
+      $wallet = $helper->get_wallet_summary($duid);
+      $available = (float)$wallet["wallet"][0]->available;
+
+      $recipient = $helper->get_user_info($company_id, $mobile);
+      if(COUNT($recipient) == 0) {
+        return array(
+          'status' => 401,
+          'message' => "{$this::$user_first_name}your trying to transfer load is not existing."
+        );
+      }
+
+      if($amount <=0) {
+        return array(
+          'status' => 404,
+          'message' => "{$this::$user_first_name}\r\nInvalid amount."
+        );
+      }
+
+      if($amount > $available) {
+        return array(
+          "status" => 402,
+          "message" => "{$this::$user_first_name}Your wallet is not enough to transfer ₱{$amount} pesos.",
+        );
+      }
+
+      $ref_number = $helper->trans_num();
+      $results = $helper->add_wallet(
+        $duid,
+        $ref_number,
+        "TRANSFER DEBIT",
+        $amount,
+        0
+      );
+
+      if($results["status"] == 200) {
+        $results = $helper->add_wallet(
+          $recipient[0]->Id,
+          $ref_number,
+          "TRANSFER CREDIT",
+          $amount,
+          1
+        );
+      }
+
+      dd($results);
+
+    }
+
     public function execute_load($company_info, $dealer, $commands) {
       $company_name = $company_info->business_name;
       $helper = new L4DHelper();
@@ -308,7 +452,7 @@ class L4DBotController extends Controller
       // update wallet of the member
       // $wallet = $helper->add_wallet($duid, "BUY", $prod_code_amount);
       $load_log = $helper->add_load_logs($duid, "DEBIT", $prod_code_amount);
-      if($wallet["status"] > 200) {
+      if($load_log["status"] > 200) {
         return array(
           "status" => 403,
           "message" => "{$this::$user_first_name}Something went wrong with Telcom. Please try again.",
@@ -363,17 +507,28 @@ class L4DBotController extends Controller
       $amount = (float)$request->amount;
       $network = L4DHelper::prefix($target);
 
+      // dd($reference);
+
+      $dealer = DB::select("SELECT * FROM tbl_dealers WHERE company_id = {$company_id} AND facebook_id = '{$fb_id}' OR mobile = '{$fb_id}';");
+      $duid = $dealer[0]->Id;
+
       $param = "network={$network}&target={$target}&code={$keyword}";
       $load_results = $helper->curl_execute(null, "/execute-load-command.aspx?{$param}");
+
+      // dd($load_results);
 
       if($load_results["status"] == 200) {
         $committed = $load_results["committed"];
         $verified = $load_results["verified"];
         $topup_transaction = $committed["topupSessionID"];
 
-        $w = $helper->update_wallet($reference, 1);
+        // update load logs
+        $logs = $helper->update_loadlogs($reference, 1);
 
-        $w = $helper->add_wallet($duid, "DEBIT", $prod_code_amount);
+        // add transaction into wallet
+        $w = $helper->add_wallet($duid, $reference, "DEBIT", $amount);
+
+        // add loading transaction
         $l = $helper->add_loading_transaction(
           $reference,
           L4DHelper::network($network),

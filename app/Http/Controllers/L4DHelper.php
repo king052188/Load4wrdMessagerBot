@@ -10,6 +10,7 @@ use App\Wallet;
 use App\Loading;
 use App\ProductCode;
 use App\SMSQueue;
+use App\LoadLogs;
 use DB;
 use Exception;
 use Ramsey\Uuid\Uuid;
@@ -209,6 +210,16 @@ class L4DHelper extends Controller
       );
     }
 
+    public function get_user_info($company_id, $user_account) {
+      $dealer = DB::select("
+        SELECT * FROM tbl_dealers
+        WHERE company_id = {$company_id}
+        AND facebook_id = '{$user_account}'
+        OR mobile = '{$user_account}';
+      ");
+      return $dealer;
+    }
+
     public function message($title, $mobile, $customize = null) {
       switch ($title) {
         case 'welcome':
@@ -232,19 +243,19 @@ class L4DHelper extends Controller
     public function add_load_logs($duid, $description, $amount) {
       $ref_number = $this->trans_num();
 
-      $s = new Wallet();
-      $s->dealer_id = $duid;
-      $s->reference = $ref_number;
-      $s->description = $description;
-      $s->amount = $amount;
-      $s->type = 0;
-      $s->status = 0;
+      $l = new LoadLogs();
+      $l->dealer_id = $duid;
+      $l->reference = $ref_number;
+      $l->description = $description;
+      $l->amount = $amount;
+      $l->type = 0;
+      $l->status = 0;
 
-      if($s->save()) {
+      if($l->save()) {
         return array(
           "status" => 200,
           "reference" => $ref_number,
-          "last_id" => $s->id
+          "last_id" => $l->id
         );
       }
 
@@ -255,7 +266,7 @@ class L4DHelper extends Controller
       );
     }
 
-    public function add_wallet($duid, $ref_number, $description, $amount) {
+    public function add_wallet($duid, $ref_number, $description, $amount, $type = 0) {
       // $ref_number = $this->trans_num();
 
       $s = new Wallet();
@@ -263,7 +274,7 @@ class L4DHelper extends Controller
       $s->reference = $ref_number;
       $s->description = $description;
       $s->amount = $amount;
-      $s->type = 0;
+      $s->type = $type;
       $s->status = 1;
 
       if($s->save()) {
@@ -306,6 +317,18 @@ class L4DHelper extends Controller
       );
     }
 
+    public function update_loadlogs($reference, $status = 1) {
+
+      $w = LoadLogs::where('reference', $reference)
+          ->update( ["status" => $status] );
+
+      if($w) {
+        return true;
+      }
+
+      return false;
+    }
+
     public function update_wallet($reference, $status = 1) {
 
       $w = Wallet::where('reference', $reference)
@@ -317,6 +340,7 @@ class L4DHelper extends Controller
 
       return false;
     }
+
 
     public function curl_execute($data, $path, $custom_url = null) {
       // Email API
