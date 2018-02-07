@@ -220,6 +220,14 @@ class L4DHelper extends Controller
       return $dealer;
     }
 
+    public function get_type_info($company_id, $code) {
+      $type = DB::select("SELECT * FROM tbl_dealers_type WHERE company_id = {$company_id} AND code = '{$code}';");
+      if(COUNT($type) > 0) {
+        return $type[0];
+      }
+      return null;
+    }
+
     public function message($title, $mobile, $customize = null) {
       switch ($title) {
         case 'welcome':
@@ -391,5 +399,67 @@ class L4DHelper extends Controller
         $r = 1;
       }
       return $r;
+    }
+
+    public function init_command($access_token, $request_type = "web", Request $request) {
+
+      $uid = $request->fb_id;
+      $command = $request->command;
+
+      if (strpos($command, $this::$CMDPrefix) !== false) {
+        $commands = explode(" ", $command);
+
+        if(COUNT($commands) > 1 && COUNT($commands) == 2) {
+          $data = explode("/", $commands[2]);
+          $return = [];
+          switch ($commands[0]) {
+            case 'REG':
+              dd($data);
+              break;
+            case 'CODE':
+              dd($data);
+              break;
+            case 'MPIN':
+              dd($data);
+              break;
+            case 'TLW':
+              break;
+
+            default:
+              $return = array(
+                'status' => 404,
+                'message' => "{$this::$user_first_name}\r\Invalid command - Code1, please try again."
+              );
+              break;
+          }
+          return $return;
+        }
+
+        if(COUNT($commands) > 2 && COUNT($commands) == 3) {
+          $data = explode("/", $commands[2]);
+          $return = [];
+          switch ($commands[0]) {
+            case 'LC':
+              dd($data);
+              break;
+
+            default:
+              // product codes
+              $product_codes = $helper->get_load_keyword(
+                L4DHelper::network($network),
+                $code
+              );
+              $return = array(
+                'status' => 404,
+                'message' => "{$this::$user_first_name}\r\Invalid command - Code2, please try again."
+              );
+              break;
+          }
+          return $return;
+
+
+        }
+
+      }
     }
 }

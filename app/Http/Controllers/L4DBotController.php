@@ -150,89 +150,7 @@ class L4DBotController extends Controller
       if(COUNT($dealer) == 0) {
         return array(
           'status' => 401,
-          'message' => "{$this::$user_first_name}your mobile or facebook ID did not found to our system."
-        );
-      }
-
-      if (strpos($command, $this::$CMDPrefix) !== false) {
-        $commands = explode(" ", $command);
-
-        if(COUNT($commands) > 2 && COUNT($commands) == 3) {
-
-          $data = explode("/", $commands[2]);
-          $return = [];
-
-          switch ($commands[1]) {
-            case 'REG':
-              $mobile = $data[0];
-              $amount = $data[1];
-              dd($data);
-              break;
-
-            case 'TLW':
-              $mobile = $data[0];
-              $amount = (float)$data[1];
-              $return = $this->tlw($dealer, $mobile, $amount);
-              break;
-
-            default:
-              $return = array(
-                'status' => 404,
-                'message' => "{$this::$user_first_name}\r\Invalid command, please try again."
-              );
-              break;
-          }
-          return $return;
-
-
-        }
-
-      }
-
-      return array(
-        'status' => 404,
-        'message' => "{$this::$user_first_name}\r\nHow may we help you?"
-      );
-    }
-
-    public function command_load($access_token, $request_type = "web", Request $request) {
-      $helper = new L4DHelper();
-      $company_info = L4DHelper::get_company_info($access_token);
-      $dt = Carbon::now()->toDateTimeString();
-      if($company_info == null) {
-        return array(
-          'status' => 400,
-          'message' => "Oops, Please contact your service provider.",
-          'facebook_id' => null,
-          'user_mobile' => null,
-          'one_time_password' => 0
-        );
-      }
-
-      $company_id = $company_info->Id;
-      $company_name = $company_info->business_name;
-      $command = $request->command;
-      $this::$user_first_name = "";
-
-      if($request_type == "web") {
-        $fb_id = $request->fb_id;
-        $facebook_user_info = $helper->curl_fb_execute($fb_id);
-        if(!IsSet($facebook_user_info["error"])) {
-          $this::$user_first_name = "Hello " . $facebook_user_info["first_name"] . ", ";
-        }
-        else {
-          $this::$user_first_name = "Hello, ";
-        }
-      }
-      else {
-         $fb_id = $request->mobile;
-      }
-
-      $dealer = DB::select("SELECT * FROM tbl_dealers WHERE company_id = {$company_id} AND facebook_id = '{$fb_id}' OR mobile = '{$fb_id}';");
-      if(COUNT($dealer) == 0) {
-        return array(
-          'status' => 401,
-          'message' => "{$this::$user_first_name}your facebook ID did not found to our system."
+          'message' => "{$this::$user_first_name}your Mobile or facebook ID did not found in our system."
         );
       }
 
@@ -256,20 +174,36 @@ class L4DBotController extends Controller
 
         if(COUNT($commands) > 2 && COUNT($commands) == 3) {
 
-          // sms command
-          if($request_type=="sms") {
-            return $this->execute_load_via_sms(
-              $dealer,
-              $commands
-            );
-          }
-
-          // web/messenger command
-          return $this->execute_load(
-            $company_info,
-            $dealer,
-            $commands
+          $return = array(
+            'status' => 404,
+            'message' => "{$this::$user_first_name}Invalid command. Please try again."
           );
+
+          $data = explode("/", $commands[2]);
+
+          switch ($commands[1]) {
+            case 'REG':
+              $mobile = $data[0];
+              $amount = $data[1];
+              $return = $this->reg_member($dealer, $mobile, $amount);
+              break;
+
+            case 'TLW':
+              $mobile = $data[0];
+              $amount = (float)$data[1];
+              $return = $this->tlw($dealer, $mobile, $amount);
+              break;
+
+            default:
+              $return = $this->execute_load(
+                $company_info,
+                $dealer,
+                $commands
+              );
+              break;
+            }
+
+            return $return;
         }
 
         return array(
@@ -281,6 +215,51 @@ class L4DBotController extends Controller
       return array(
         'status' => 404,
         'message' => "{$this::$user_first_name}\r\nHow may we help you?"
+      );
+    }
+
+    public function link_messenger($access_token, $request_type = "web", Request $request) {
+      $helper = new L4DHelper();
+      $fb_id = $request->fb_id;
+      $mobile = $request->mobile;
+
+      $company_info = L4DHelper::get_company_info($access_token);
+      if($company_info == null) {
+        return array(
+          'status' => 400,
+          'message' => "Oops, Please contact your service provider.",
+          'facebook_id' => null,
+          'user_mobile' => null,
+          'one_time_password' => 0
+        );
+      }
+      $company_id = $company_info->Id;
+      $dealer = $helper->get_user_info($company_id, $mobile);
+      if(COUNT($dealer) == 0) {
+        return array(
+          'status' => 401,
+          'message' => "{$this::$user_first_name}your mobile did not found in our system.",
+          'facebook_id' => null,
+          'user_mobile' => null,
+          'one_time_password' => 0
+        );
+      }
+
+      $d = Dealer::where("Id", $dealer[0]->Id)
+      ->update(
+        array("facebook_id" => $fb_id)
+      );
+      
+      if($d) {
+        return array(
+          'status' => 200,
+          'message' => "{$this::$user_first_name}you have successfully link your messenger. Thank You!"
+        );
+      }
+
+      return array(
+        'status' => 500,
+        'message' => "{$this::$user_first_name}failed to link your messenger. Please try again. Thank You!"
       );
     }
 
@@ -325,12 +304,55 @@ class L4DBotController extends Controller
       );
     }
 
-    public function reg_member() {
+    public function reg_member($dealer, $mobile, $type) {
+      $helper = new L4DHelper();
+      $duid = $dealer[0]->Id;
+      $company_id = $dealer[0]->company_id;
+
+      $new_member = $helper->get_user_info($company_id, $mobile);
+      if(COUNT($new_member) > 0) {
+        return array(
+          'status' => 401,
+          'message' => "{$this::$user_first_name}mobile number already exists in our system.",
+          'facebook_id' => null,
+          'user_mobile' => null,
+          'one_time_password' => 0
+        );
+      }
+
+      $type = $helper->get_type_info($company_id, $type);
+      if($type == null) {
+        return array(
+          'status' => 401,
+          'message' => "{$this::$user_first_name}the membeship type is not valid. Please try again with a valid type",
+          'facebook_id' => null,
+          'user_mobile' => null,
+          'one_time_password' => 0
+        );
+      }
+
+      $d = new Dealer();
+      $d->company_id = $company_id;
+      $d->mobile = $mobile;
+      $d->connected_to = $duid;
+      $d->type = $type->Id;
+      if($d->save()) {
+        $helper->sms_queue(
+          $mobile,
+          $helper->message("welcome", $mobile)
+        );
+
+        return array(
+          'status' => 200,
+          'message' => "{$this::$user_first_name}you have successfully registered this mobile# {$mobile}. Thank You!"
+        );
+      }
 
     }
 
     public function tlw($dealer, $mobile, $amount) {
 
+      $dt = Carbon::now()->toDateTimeString();
       $helper = new L4DHelper();
       $duid = $dealer[0]->Id;
       $company_id = $dealer[0]->company_id;
@@ -378,6 +400,12 @@ class L4DBotController extends Controller
         );
 
         if($results["status"] == 200) {
+          $msg = "P{$amount} pesos have been loaded to your wallet, reference# {$ref_number} date {$dt}. Thank you!";
+          $helper->sms_queue(
+            $mobile,
+            $helper->message("otp", $mobile, $msg)
+          );
+
           return array(
             "status" => 200,
             "message" => "{$this::$user_first_name}you have transfered ₱{$amount} pesos to mobile# {$mobile}.",

@@ -21,9 +21,12 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 Route::get('/v1/verify/{access_token}', 'L4DBotController@verification');
 Route::get('/v1/register/{access_token}', 'L4DBotController@register');
 
-Route::get('/v1/load/command/keyword/{access_token}/{request_type?}', 'L4DBotController@command_keyword');
+// Route::get('/v1/load/command/keyword/{access_token}/{request_type?}', 'L4DBotController@init_command');
 
-Route::get('/v1/load/command/{access_token}/{request_type?}', 'L4DBotController@command_load');
+Route::get('/v1/load/command/{access_token}/{request_type?}', 'L4DBotController@command_keyword');
+Route::get('/v1/load/link/{access_token}/{request_type?}', 'L4DBotController@link_messenger');
+
+
 Route::get('/v1/load/proceed/{access_token}', 'L4DBotController@proceed_load_request');
 
 Route::get('/v1/generate/uuid', 'L4DHelper@access_token');

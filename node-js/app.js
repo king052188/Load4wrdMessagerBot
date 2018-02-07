@@ -94,7 +94,7 @@ function handleMessage(sender_psid, received_message) {
     var data;
     var msg = received_message.text;
 
-    if(msg.includes("REG") || msg.includes("Reg") || msg.includes("reg")) {
+    if(msg.includes("PSREG") || msg.includes("PSReg") || msg.includes("PSreg")) {
       data = msg.split(" ");
       console.log(data);
       if(data.length > 0) {
@@ -110,8 +110,13 @@ function handleMessage(sender_psid, received_message) {
     }
     else if(msg.includes("LC")) {
       data = msg;
-      console.log(data);
-      command(sender_psid, data);
+      datas = data.split(" ");
+      if(datas[1].includes("LINK")) {
+        link(sender_psid, datas[2]);
+      }
+      else {
+        command(sender_psid, data);
+      }
     }
     else if(msg.includes("MPIN")) {
       data = msg.split(" ");
@@ -189,7 +194,7 @@ function callSendAPI(sender_psid, response) {
 function verify(sender_psid, mobile) {
   if(mobile.length != 11) {
     console.log("Invalid mobile number.");
-    handleMessageSend(sender_psid, "Invalid mobile number.");
+    handleMessageSend(sender_psid, "Invalid mobile number 1.");
     return false;
   }
 
@@ -200,7 +205,7 @@ function verify(sender_psid, mobile) {
 
   newCache = new cache.Cache();
   request({
-    "uri": API_URL + "/api/v1/verify",
+    "uri": API_URL + "/api/v1/verify/" + ACCESS_TOKEN,
     "method": "GET",
     "json": request_body
   }, (err, res, body) => {
@@ -254,7 +259,7 @@ function register(sender_psid, code) {
   }
 
   request({
-    "uri": API_URL + "/api/v1/register",
+    "uri": API_URL + "/api/v1/register/" + ACCESS_TOKEN,
     "method": "GET",
     "json": request_body
   }, (err, res, body) => {
@@ -277,6 +282,42 @@ function register(sender_psid, code) {
   });
 }
 
+function link(sender_psid, mobile) {
+  if(mobile.length != 11) {
+    console.log("Invalid mobile number.");
+    handleMessageSend(sender_psid, "Invalid mobile number 1.");
+    return false;
+  }
+
+  let request_body = {
+    "fb_id": sender_psid,
+    "mobile": mobile
+  }
+
+  request({
+    "uri": API_URL + "/api/v1/load/link/" + ACCESS_TOKEN,
+    "method": "GET",
+    "json": request_body
+  }, (err, res, body) => {
+    if (!err) {
+      var status = parseInt(body['status']);
+      var message = body['message'];
+      if(status != 200) {
+        console.log(message);
+        handleMessageSend(sender_psid, message);
+        return false;
+      }
+
+      handleMessageSend(sender_psid, message);
+    }
+    else {
+      console.error("Unable to send message:" + err);
+      stringMSG = "Unable to send message:" + err;
+      handleMessageSend(sender_psid, stringMSG);
+    }
+  });
+}
+
 function command(sender_psid, command) {
   sender_fbuid = sender_psid;
   let request_body = {
@@ -284,7 +325,7 @@ function command(sender_psid, command) {
     "command": command
   }
   newCache = new cache.Cache();
-  var url = API_URL + "/api/v1/load/command";
+  var url = API_URL + "/api/v1/load/command/" + ACCESS_TOKEN;
   request({
     "uri": url,
     "method": "GET",
@@ -363,7 +404,7 @@ function command_proceed(sender_psid) {
   console.log(request_body);
 
   request({
-    "uri": API_URL + "/api/v1/load/proceed",
+    "uri": API_URL + "/api/v1/load/proceed/" + ACCESS_TOKEN,
     "method": "GET",
     "json": request_body
   }, (err, res, body) => {
