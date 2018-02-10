@@ -21,6 +21,8 @@ class L4DHelper extends Controller
     //
     public static $load_api = "staging.kpa.ph:8066";
 
+    public static $engine_node_api = "http://localhost:3200";
+
     public static $company_name = "EnghagePro";
 
     public static $fb_access_token = "EAAC1VxtCsysBAIz0Q01ZCnm50AwOskgTq9sgnuYoLtQ1D4tF6XMHtU6U0hRFrXEsZC3G2w798ZA9UZBEndUwrAdte5EYuOY61VqoOTYNJzZC3SBLlMDpmweOeUXNpRR1jsdk0oIPfkuCwuiorsiu6sERJauc7v3Dqxkec6ZCZAV6QZDZD";
@@ -40,7 +42,7 @@ class L4DHelper extends Controller
       return $guid;
     }
 
-    public static function get_company_info($guid) {
+    public function get_company_info($guid) {
       $c = Company::where('access_token', $guid)->first();
       return $c;
     }
@@ -210,14 +212,24 @@ class L4DHelper extends Controller
       );
     }
 
-    public function get_user_info($company_id, $user_account) {
-      $dealer = DB::select("
-        SELECT * FROM tbl_dealers
-        WHERE company_id = {$company_id}
-        AND facebook_id = '{$user_account}'
-        OR mobile = '{$user_account}';
-      ");
-      return $dealer;
+    public function get_user_info($company_id, $user_account, $IsMobile = false) {
+      if($IsMobile) {
+        $dealer = DB::select("
+          SELECT * FROM tbl_dealers
+          WHERE company_id = {$company_id} AND mobile = '{$user_account}';
+        ");
+      }
+      else {
+        $dealer = DB::select("
+          SELECT * FROM tbl_dealers
+          WHERE company_id = {$company_id} AND facebook_id = '{$user_account}';
+        ");
+      }
+
+      if(COUNT($dealer) > 0) {
+        return $dealer[0];
+      }
+      return null;
     }
 
     public function get_type_info($company_id, $code) {
@@ -226,6 +238,30 @@ class L4DHelper extends Controller
         return $type[0];
       }
       return null;
+    }
+
+    public function get_method($request_type, $request) {
+      $first_name = "";
+      $account = "";
+
+      if($request_type == "web") {
+        $account = $request->fb_id;
+        $facebook_user_info = $this->curl_fb_execute($account);
+        if(!IsSet($facebook_user_info["error"])) {
+          $user_first_name = "Hello " . $facebook_user_info["first_name"] . ", ";
+        }
+        else {
+          $user_first_name = "Hello, ";
+        }
+      }
+      else {
+         $account = $request->mobile;
+      }
+
+      return array(
+        "account_id" => $account,
+        "first_name" => $first_name
+      );
     }
 
     public function message($title, $mobile, $customize = null) {
@@ -376,6 +412,24 @@ class L4DHelper extends Controller
     public function curl_fb_execute($user_id) {
       // Email API
       $url = "https://graph.facebook.com/v2.12/". $user_id . "?access_token=" . $this::$fb_access_token;
+
+      // Added JSON Header
+      $headers = array('Accept: application/json','Content-Type: application/json');
+
+      $ch = curl_init($url);
+      curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "GET");
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+      $result = json_decode(curl_exec($ch), true);
+      curl_close($ch);
+      return $result;
+    }
+
+    public function messenger_send($fb_id, $messeage) {
+      $data = "/messenger/send?fb_id={$fb_id}&message={$messeage}";
+      // Email API
+      $url = $this::$engine_node_api . $data;
 
       // Added JSON Header
       $headers = array('Accept: application/json','Content-Type: application/json');

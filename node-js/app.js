@@ -39,6 +39,12 @@ app.get('/mpin', (req, res) => {
   res.send("nope");
 });
 
+app.get('/messenger/send', (req, res) => {
+  var fb_id = req.query["fb_id"];
+  var message = req.query["message"];
+  MessengerSend(fb_id, message, res);
+});
+
 // To verify
 app.get('/webhook', (req, res) => {
   if(req.query['hub.verify_token'] === VERIFY_TOKEN) {
@@ -86,6 +92,42 @@ app.post('/webhook', (req, res) => {
 
 });
 
+////
+
+function MessengerSend(sender_psid, message, res_json) {
+  // Construct the message body
+  let response;
+  // Create the payload for a basic text message
+  response = {
+    "text": `${message}`
+  }
+
+  let request_body = {
+    "recipient": {
+      "id": sender_psid
+    },
+    "message": response
+  }
+
+  // Send the HTTP request to the Messenger Platform
+  request({
+    "uri": "https://graph.facebook.com/v2.6/me/messages",
+    "qs": { "access_token": PAGE_ACCESS_TOKEN },
+    "method": "POST",
+    "json": request_body
+  }, (err, res, body) => {
+    if (!err) {
+      console.log('message sent!');
+      res_json.json({ status: 200, message: "message sent" });
+    } else {
+      console.error("Unable to send message:" + err);
+      res_json.json({ status: 500, message: "sending failed" });
+    }
+  });
+}
+
+////
+
 function handleMessage(sender_psid, received_message) {
   let response;
   // Check if the message contains text
@@ -94,7 +136,7 @@ function handleMessage(sender_psid, received_message) {
     var data;
     var msg = received_message.text;
 
-    if(msg.includes("PSREG") || msg.includes("PSReg") || msg.includes("PSreg")) {
+    if(msg.includes("REG") || msg.includes("Reg") || msg.includes("reg")) {
       data = msg.split(" ");
       console.log(data);
       if(data.length > 0) {
@@ -108,17 +150,10 @@ function handleMessage(sender_psid, received_message) {
         register(sender_psid, data[1]);
       }
     }
-    else if(msg.includes("LC")) {
-      data = msg;
-      datas = data.split(" ");
-      if(datas[1].includes("LINK")) {
-        link(sender_psid, datas[2]);
-      }
-      else {
-        command(sender_psid, data);
-      }
+    else if(msg.includes("LOAD")) {
+      command_load(sender_psid, msg);
     }
-    else if(msg.includes("MPIN")) {
+    else if(msg.includes("OTP")) {
       data = msg.split(" ");
       console.log(data);
       if(data.length > 0) {
@@ -133,7 +168,7 @@ function handleMessage(sender_psid, received_message) {
       }
     }
     else {
-      handleMessageSend(sender_psid, msg);
+      command(sender_psid, msg);
     }
   }
 }
@@ -145,7 +180,7 @@ function handleMessageSend(sender_psid, received_message) {
     "text": `${received_message}`
   }
   // Sends the response message
-  callSendAPI(sender_psid, response);
+  return callSendAPI(sender_psid, response);
 }
 
 function handlePostback(sender_psid, received_postback) {
@@ -181,9 +216,11 @@ function callSendAPI(sender_psid, response) {
     "json": request_body
   }, (err, res, body) => {
     if (!err) {
-      console.log('message sent!')
+      console.log('message sent!');
+      return true;
     } else {
       console.error("Unable to send message:" + err);
+      return false;
     }
   });
 }
@@ -223,9 +260,9 @@ function verify(sender_psid, mobile) {
       newCache.put('MOBILE', mobile);
       newCache.put('FACEBOOK_ID', sender_psid);
 
-      var summary = "We have sent confirmation code to your mobile.\r\n\r\n";
+      var summary = "To complete your registration, we have sent a confirmation code to your mobile.\r\n\r\n";
       summary += "Please type CODE<space>6-digits then press enter\r\n\r\n";
-      summary += "Example: CODE 123456 then press enter";
+      summary += "I.e: CODE 123456 then press enter";
       console.log(newCache.get('CODE'));
       handleMessageSend(sender_psid, summary);
     }
@@ -282,32 +319,48 @@ function register(sender_psid, code) {
   });
 }
 
-function link(sender_psid, mobile) {
-  if(mobile.length != 11) {
-    console.log("Invalid mobile number.");
-    handleMessageSend(sender_psid, "Invalid mobile number 1.");
-    return false;
-  }
+function act(sender_psid, command) {
 
   let request_body = {
     "fb_id": sender_psid,
-    "mobile": mobile
+    "command": command
   }
 
   request({
-    "uri": API_URL + "/api/v1/load/link/" + ACCESS_TOKEN,
+    "uri": API_URL + "/api/v1/load/act/" + ACCESS_TOKEN,
     "method": "GET",
     "json": request_body
   }, (err, res, body) => {
     if (!err) {
       var status = parseInt(body['status']);
       var message = body['message'];
-      if(status != 200) {
-        console.log(message);
-        handleMessageSend(sender_psid, message);
-        return false;
-      }
+      console.log(message);
+      handleMessageSend(sender_psid, message);
+    }
+    else {
+      console.error("Unable to send message:" + err);
+      stringMSG = "Unable to send message:" + err;
+      handleMessageSend(sender_psid, stringMSG);
+    }
+  });
+}
 
+function bal(sender_psid, command) {
+
+  let request_body = {
+    "fb_id": sender_psid,
+    "command": command
+  }
+
+  request({
+    "uri": API_URL + "/api/v1/load/bal/" + ACCESS_TOKEN,
+    "method": "GET",
+    "json": request_body
+  }, (err, res, body) => {
+    if (!err) {
+      var status = parseInt(body['status']);
+      var message = body['message'];
+      console.log(message);
       handleMessageSend(sender_psid, message);
     }
     else {
@@ -319,13 +372,39 @@ function link(sender_psid, mobile) {
 }
 
 function command(sender_psid, command) {
+
+  let request_body = {
+    "account": sender_psid,
+    "command": command
+  }
+
+  request({
+    "uri": API_URL + "/api/v1/load/command/web/" + ACCESS_TOKEN,
+    "method": "GET",
+    "json": request_body
+  }, (err, res, body) => {
+    if (!err) {
+      var status = parseInt(body['status']);
+      var message = body['message'];
+      console.log(message);
+      handleMessageSend(sender_psid, message);
+    }
+    else {
+      console.error("Unable to send message:" + err);
+      stringMSG = "Unable to send message:" + err;
+      handleMessageSend(sender_psid, stringMSG);
+    }
+  });
+}
+
+function command_load(sender_psid, command) {
   sender_fbuid = sender_psid;
   let request_body = {
-    "fb_id": sender_psid,
+    "account": sender_psid,
     "command": command
   }
   newCache = new cache.Cache();
-  var url = API_URL + "/api/v1/load/command/" + ACCESS_TOKEN;
+  var url = API_URL + "/api/v1/load/command/web/" + ACCESS_TOKEN;
   request({
     "uri": url,
     "method": "GET",
@@ -436,148 +515,8 @@ function command_proceed(sender_psid) {
 
 
 
-function command_verify(sender_psid) {
-  sender_fbuid = sender_psid;
-  let request_body = {
-    "fb_id": sender_psid,
-    "network": "SMART",
-    "transaction": newCache.get('topup_id'),
-    "mobile": newCache.get('mobile'),
-    "amount": newCache.get('amount')
-  }
-  console.log(request_body);
-
-  request({
-    "uri": API_URL + "/api/v1/load/verify",
-    "method": "GET",
-    "json": request_body
-  }, (err, res, body) => {
-    if (!err) {
-      console.log(body);
-      var status = parseInt(body['status']);
-      var message = body['message'];
-      console.log("status: " + status);
-      console.log("message: " + message);
-      if(status == 201) {
-        setTimeout(reverify_load_command, 2000);
-        return false;
-      }
-      if(status != 200) {
-        handleMessageSend(sender_psid, message);
-        return false;
-      }
-      handleMessageSend(sender_psid, message);
-    }
-    else {
-      console.error("Unable to send message:" + err);
-      stringMSG = "Unable to send message:" + err;
-      handleMessageSend(sender_psid, stringMSG);
-    }
-  });
-}
-
-function reverify_load_command() {
-  console.log(`arg was => ${sender_fbuid}`);
-  command_verify(sender_fbuid);
-}
-
-
 
 // ptxt4wrd
-
-function callSendPtxt4wrdAPI(sender_psid, mobile, command) {
-  // Construct the message body
-  let request_body = {
-    "mobile": mobile,
-    "command": command.replace("-", " ")
-  }
-
-  newCache = new cache.Cache();
-  var stringMSG = null;
-  // Send the HTTP request to the Messenger Platform
-  request({
-    "uri": API_URL + "/command/execute/v2",
-    "method": "GET",
-    "json": request_body
-  }, (err, res, body) => {
-    if (!err) {
-      var mpin_verify = body['MPIN'];
-      newCache.put('CODE', mpin_verify);
-      newCache.put('MOBILE', mobile);
-      newCache.put('COMMAND', command);
-
-      var summary = "We have sent OTP to your mobile";
-      summary += "Please type CODE<space>6 digits then press enter";
-
-      console.log(summary);
-      console.log(newCache.get('CODE'));
-      handleMessageSend(sender_psid, summary);
-    }
-    else {
-      console.error("Unable to send message:" + err);
-      stringMSG = "Unable to send message:" + err;
-      handleMessageSend(sender_psid, stringMSG);
-    }
-  });
-  return stringMSG;
-}
-
-function callSendLoad4wrdAPI(sender_psid, mobile, command) {
-  // Construct the message body
-
-  let request_body = {
-    "mobile": mobile,
-    "command": command.replace("-", " ")
-  }
-
-  newCache = new cache.Cache();
-  var stringMSG = null;
-  // Send the HTTP request to the Messenger Platform
-  request({
-    "uri": API_URL + "/command/process/v2",
-    "method": "GET",
-    "json": request_body
-  }, (err, res, body) => {
-    if (!err) {
-      var status = parseInt(body['Status']);
-      var msg = "Something went wrong, please try again.";
-      if(status == 200) {
-        msg = "Your request is being processed.";
-      }
-      console.error(msg);
-      handleMessageSend(sender_psid, msg);
-    }
-    else {
-      console.error("Unable to send message:" + err);
-      stringMSG = "Unable to send message:" + err;
-
-      handleMessageSend(sender_psid, stringMSG);
-    }
-  });
-
-  return stringMSG;
-}
-
-function mpinVerify(sender_psid, users_mpin) {
-  var cache_mpin = 0;
-  try{
-    cache_mpin = newCache.get('CODE');
-    cache_mobile = newCache.get('MOBILE');
-    cache_command = newCache.get('COMMAND');
-
-    if(parseInt(cache_mpin) == parseInt(users_mpin)) {
-      callSendLoad4wrdAPI(sender_psid, cache_mobile, cache_command);
-    }
-    else {
-      handleMessageSend(sender_psid, "Invalid OTP");
-    }
-
-  } catch( err ){
-    handleMessageSend(sender_psid, "No OTP set.");
-  }
-  console.log("mem_cache: " + cache_mpin);
-  console.log("user_pin: " + users_mpin);
-}
 
 function callPTXT4wrdSMSAPI(sender_psid, mobile, message) {
   // Construct the message body
@@ -616,7 +555,6 @@ function callPTXT4wrdSMSAPI(sender_psid, mobile, message) {
 
   return stringMSG;
 }
-
 
 app.listen(3200);
 
