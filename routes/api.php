@@ -25,13 +25,6 @@ Route::get('/v1/register/{access_token}', 'L4DBotController@register');
 
 Route::get('/v1/load/command/{access_token}/{request_type?}', 'L4DBotController@command_keyword');
 
-Route::get('/v1/load/act/{access_token}/{request_type?}', 'L4DBotController@activate');
-
-Route::get('/v1/load/wallet/{access_token}/{request_type?}', 'L4DBotController@wallet');
-
-Route::get('/v1/load/bal/{access_token}/{request_type?}', 'L4DBotController@bal');
-
-
 Route::get('/v1/load/proceed/{access_token}', 'L4DBotController@proceed_load_request');
 
 Route::get('/v1/generate/uuid', 'L4DHelper@access_token');

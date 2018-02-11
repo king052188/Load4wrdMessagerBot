@@ -23,7 +23,7 @@ class L4DHelper extends Controller
 
     public static $engine_node_api = "http://localhost:3200";
 
-    public static $company_name = "EnghagePro";
+    public static $company_name = "PollyStore";
 
     public static $fb_access_token = "EAAC1VxtCsysBAIz0Q01ZCnm50AwOskgTq9sgnuYoLtQ1D4tF6XMHtU6U0hRFrXEsZC3G2w798ZA9UZBEndUwrAdte5EYuOY61VqoOTYNJzZC3SBLlMDpmweOeUXNpRR1jsdk0oIPfkuCwuiorsiu6sERJauc7v3Dqxkec6ZCZAV6QZDZD";
 
@@ -215,14 +215,20 @@ class L4DHelper extends Controller
     public function get_user_info($company_id, $user_account, $IsMobile = false) {
       if($IsMobile) {
         $dealer = DB::select("
-          SELECT * FROM tbl_dealers
-          WHERE company_id = {$company_id} AND mobile = '{$user_account}';
+          SELECT *, mobile AS account
+          FROM tbl_dealers AS a
+          INNER JOIN tbl_dealers_type AS b
+          ON a.type = b.Id
+          WHERE a.company_id = {$company_id} AND a.mobile = '{$user_account}';
         ");
       }
       else {
         $dealer = DB::select("
-          SELECT * FROM tbl_dealers
-          WHERE company_id = {$company_id} AND facebook_id = '{$user_account}';
+          SELECT *, facebook_id AS account
+          FROM tbl_dealers AS a
+          INNER JOIN tbl_dealers_type AS b
+          ON a.type = b.Id
+          WHERE a.company_id = {$company_id} AND a.facebook_id = '{$user_account}';
         ");
       }
 
