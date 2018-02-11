@@ -18,8 +18,8 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 
-Route::get('/v1/verify/{access_token}', 'L4DBotController@verification');
-Route::get('/v1/register/{access_token}', 'L4DBotController@register');
+Route::get('/v1/verify/{tag}/{access_token}', 'L4DBotController@verification');
+Route::get('/v1/register/{tag}/{access_token}', 'L4DBotController@register');
 
 // Route::get('/v1/load/command/keyword/{access_token}/{request_type?}', 'L4DBotController@init_command');
 

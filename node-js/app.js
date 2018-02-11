@@ -140,7 +140,14 @@ function handleMessage(sender_psid, received_message) {
       data = msg.split(" ");
       console.log(data);
       if(data.length > 0) {
-        verify(sender_psid, data[1]);
+        verify(sender_psid, data[1], "reg");
+      }
+    }
+    else if(msg.includes("TAG") || msg.includes("Tag") || msg.includes("tag")) {
+      data = msg.split(" ");
+      console.log(data);
+      if(data.length > 0) {
+        verify(sender_psid, data[1], "tag");
       }
     }
     else if(msg.includes("CODE")) {
@@ -228,7 +235,7 @@ function callSendAPI(sender_psid, response) {
 
 // pollystore 1020
 
-function verify(sender_psid, mobile) {
+function verify(sender_psid, mobile, type) {
   if(mobile.length != 11) {
     console.log("Invalid mobile number.");
     handleMessageSend(sender_psid, "Invalid mobile number 1.");
@@ -242,7 +249,7 @@ function verify(sender_psid, mobile) {
 
   newCache = new cache.Cache();
   request({
-    "uri": API_URL + "/api/v1/verify/" + ACCESS_TOKEN,
+    "uri": API_URL + "/api/v1/verify/" + type + "/" + ACCESS_TOKEN,
     "method": "GET",
     "json": request_body
   }, (err, res, body) => {
@@ -256,15 +263,13 @@ function verify(sender_psid, mobile) {
       }
 
       var code = body['one_time_password'];
+      var type = body['type'];
       newCache.put('CODE', code);
+      newCache.put('TYPE', type);
       newCache.put('MOBILE', mobile);
       newCache.put('FACEBOOK_ID', sender_psid);
-
-      var summary = "To complete your registration, we have sent a confirmation code to your mobile.\r\n\r\n";
-      summary += "Please type CODE<space>6-digits then press enter\r\n\r\n";
-      summary += "I.e: CODE 123456 then press enter";
       console.log(newCache.get('CODE'));
-      handleMessageSend(sender_psid, summary);
+      handleMessageSend(sender_psid, message);
     }
     else {
       console.error("Unable to send message:" + err);
@@ -288,6 +293,7 @@ function register(sender_psid, code) {
     return false;
   }
 
+  var type = newCache.get('TYPE');
   var fb_id = newCache.get('FACEBOOK_ID');
   var mobile = newCache.get('MOBILE');
   let request_body = {
@@ -296,64 +302,7 @@ function register(sender_psid, code) {
   }
 
   request({
-    "uri": API_URL + "/api/v1/register/" + ACCESS_TOKEN,
-    "method": "GET",
-    "json": request_body
-  }, (err, res, body) => {
-    if (!err) {
-      var status = parseInt(body['status']);
-      var message = body['message'];
-      console.log(message);
-
-      if(status != 200) {
-        handleMessageSend(sender_psid, message);
-        return false;
-      }
-      handleMessageSend(sender_psid, message);
-    }
-    else {
-      console.error("Unable to send message:" + err);
-      stringMSG = "Unable to send message:" + err;
-      handleMessageSend(sender_psid, stringMSG);
-    }
-  });
-}
-
-function act(sender_psid, command) {
-
-  let request_body = {
-    "fb_id": sender_psid,
-    "command": command
-  }
-
-  request({
-    "uri": API_URL + "/api/v1/load/act/" + ACCESS_TOKEN,
-    "method": "GET",
-    "json": request_body
-  }, (err, res, body) => {
-    if (!err) {
-      var status = parseInt(body['status']);
-      var message = body['message'];
-      console.log(message);
-      handleMessageSend(sender_psid, message);
-    }
-    else {
-      console.error("Unable to send message:" + err);
-      stringMSG = "Unable to send message:" + err;
-      handleMessageSend(sender_psid, stringMSG);
-    }
-  });
-}
-
-function bal(sender_psid, command) {
-
-  let request_body = {
-    "fb_id": sender_psid,
-    "command": command
-  }
-
-  request({
-    "uri": API_URL + "/api/v1/load/bal/" + ACCESS_TOKEN,
+    "uri": API_URL + "/api/v1/register/" + type + "/" + ACCESS_TOKEN,
     "method": "GET",
     "json": request_body
   }, (err, res, body) => {

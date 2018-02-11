@@ -212,23 +212,33 @@ class L4DHelper extends Controller
       );
     }
 
-    public function get_user_info($company_id, $user_account, $IsMobile = false) {
+    public function get_user_info($company_id, $user_account, $status = 1, $IsMobile = false) {
+
+      $statuses = " AND a.status = {$status}";
+      if($status == -1) {
+        $statuses = "";
+      }
+
       if($IsMobile) {
         $dealer = DB::select("
-          SELECT *, mobile AS account
+          SELECT *, a.Id AS uid, mobile AS account, b.code, b.description,
+          b.ontop_percentage, b.discount_percentage, b.reseller_credits,
+          b.price, b.level
           FROM tbl_dealers AS a
           INNER JOIN tbl_dealers_type AS b
           ON a.type = b.Id
-          WHERE a.company_id = {$company_id} AND a.mobile = '{$user_account}';
+          WHERE a.company_id = {$company_id} AND a.mobile = '{$user_account}'{$statuses};
         ");
       }
       else {
         $dealer = DB::select("
-          SELECT *, facebook_id AS account
+          SELECT *, a.Id AS uid, facebook_id AS account, b.code, b.description,
+          b.ontop_percentage, b.discount_percentage, b.reseller_credits,
+          b.price, b.level
           FROM tbl_dealers AS a
           INNER JOIN tbl_dealers_type AS b
           ON a.type = b.Id
-          WHERE a.company_id = {$company_id} AND a.facebook_id = '{$user_account}';
+          WHERE a.company_id = {$company_id} AND a.facebook_id = '{$user_account}'{$statuses};
         ");
       }
 

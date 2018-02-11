@@ -20,7 +20,7 @@ class L4DBotController extends Controller
       $this::$CMDPrefix = "LOAD";
     }
 
-    public function verification($access_token, Request $request) {
+    public function verification($tag, $access_token, Request $request) {
       $helper = new L4DHelper();
       $company_info = $helper->get_company_info($access_token);
       if($company_info == null) {
@@ -37,15 +37,42 @@ class L4DBotController extends Controller
       $company_name = $company_info->business_name;
       $fb_id = $request->fb_id;
       $user_mobile = $request->mobile;
-      $dealer = DB::select("SELECT * FROM tbl_dealers WHERE company_id = {$company_id} AND facebook_id = '{$fb_id}' OR mobile = '{$user_mobile}';");
-      if(COUNT($dealer) > 0) {
-        return array(
-          'status' => 401,
-          'message' => "Oops, mobile number or facebook ID already exists to our system.",
-          'facebook_id' => null,
-          'user_mobile' => null,
-          'one_time_password' => 0
-        );
+
+      if($tag == "reg") {
+        $dealer = DB::select("SELECT * FROM tbl_dealers WHERE company_id = {$company_id} AND (facebook_id = '{$fb_id}' OR mobile = '{$user_mobile}');");
+        if(COUNT($dealer) > 0) {
+          return array(
+            'status' => 401,
+            'message' => "Your mobile number or facebook ID already exists in our system.",
+            'type' => $tag,
+            'facebook_id' => null,
+            'user_mobile' => null,
+            'one_time_password' => 0
+          );
+        }
+      }
+      else {
+        $dealer = DB::select("SELECT * FROM tbl_dealers WHERE company_id = {$company_id} AND mobile = '{$user_mobile}';");
+        if(COUNT($dealer) == 0) {
+          return array(
+            'status' => 401,
+            'message' => "Your mobile number doest not exists in our system.",
+            'type' => $tag,
+            'facebook_id' => null,
+            'user_mobile' => null,
+            'one_time_password' => 0
+          );
+        }
+        if($dealer[0]->facebook_id == $fb_id) {
+          return array(
+            'status' => 401,
+            'message' => "Your facebook ID already exists in our system.",
+            'type' => $tag,
+            'facebook_id' => null,
+            'user_mobile' => null,
+            'one_time_password' => 0
+          );
+        }
       }
 
       // send verificatio code
@@ -55,16 +82,21 @@ class L4DBotController extends Controller
         $helper->message("otp", $user_mobile, "{$otp} is your {$company_name} confirmation code. Please do not share this code with anyone. Thank You!")
       );
 
+      $message = "We have sent a confirmation code to your mobile.\r\n\r\n";
+      $message .= "Please type CODE<space>6-digitsCode then press enter\r\n\r\n";
+      $message .= "I.e: CODE 123456 then press enter";
+
       return array(
         'status' => 200,
-        'message' => "success",
+        'message' => $message,
+        'type' => $tag,
         'facebook_id' => $fb_id,
         'user_mobile' => $user_mobile,
         'one_time_password' => $otp
       );
     }
 
-    public function register($access_token, Request $request) {
+    public function register($tag, $access_token, Request $request) {
       $helper = new L4DHelper();
       $company_info = $helper->get_company_info($access_token);
       $fb_id = $request->fb_id;
@@ -80,19 +112,32 @@ class L4DBotController extends Controller
         );
       }
 
-      $company_id = $company_info->Id;
-      $company_name = $company_info->business_name;
-      $dealer = DB::select("SELECT * FROM tbl_dealers WHERE company_id = {$company_id} AND facebook_id = '{$fb_id}' OR mobile = '{$user_mobile}';");
+      if($tag == "tag") {
+        $d = Dealer::where("mobile", $user_mobile)
+        ->update(
+          array("facebook_id" => $fb_id)
+        );
 
-      if(COUNT($dealer) > 0) {
+        if($d) {
+          $helper->sms_queue(
+            $user_mobile,
+            $helper->message("welcome", $user_mobile)
+          );
+
+          return array(
+            'status' => 200,
+            'message' => "Thank You for registering, to activate your account please ask your agent.\r\n\r\n Or please type HELP then press enter."
+          );
+        }
+
         return array(
-          'status' => 401,
-          'message' => "Oops, mobile number or facebook ID already exists to our system."
+          'status' => 500,
+          'message' => "Oops, something went wrong."
         );
       }
 
       $d = new Dealer();
-      $d->company_id = $company_id;
+      $d->company_id = $company_info->Id;;
       $d->facebook_id = $fb_id;
       $d->mobile = $user_mobile;
       if($d->save()) {
@@ -106,7 +151,6 @@ class L4DBotController extends Controller
           'message' => "Thank You for registering, to activate your account please ask your agent.\r\n\r\n Or please type HELP then press enter."
         );
       }
-
       return array(
         'status' => 500,
         'message' => "Oops, something went wrong."
@@ -128,7 +172,7 @@ class L4DBotController extends Controller
         );
       }
 
-      $dealer = $helper->get_user_info($company_info->Id, $account, $isMobile);
+      $dealer = $helper->get_user_info($company_info->Id, $account, 1, $isMobile);
       if($dealer == null) {
         return array(
           'status' => 401,
@@ -160,7 +204,7 @@ class L4DBotController extends Controller
         );
       }
       else if (strpos($command, 'WBL') !== false) {
-        return $this->wbal();
+        return $this->wbal($dealer);
       }
       else if (strpos($command, 'WALLET') !== false) {
         $commands = explode(" ", $command);
@@ -208,7 +252,7 @@ class L4DBotController extends Controller
       $type = $commands[1];
       $mobile = $commands[2];
 
-      $new_member = $helper->get_user_info($company_info->Id, $mobile, true);
+      $new_member = $helper->get_user_info($company_info->Id, $mobile, 1, true);
       if(COUNT($new_member) > 0) {
         return array(
           'status' => 401,
@@ -226,24 +270,37 @@ class L4DBotController extends Controller
         );
       }
 
-      $d = new Dealer();
-      $d->company_id = $company_info->Id;
-      $d->mobile = $mobile;
-      $d->connected_to = $dealer->Id;
-      $d->type = $type->Id;
-      if($d->save()) {
-        $helper->sms_queue(
-          $mobile,
-          $helper->message("welcome", $mobile)
-        );
+      if($type->Id >= $dealer->type) {
+        $d = new Dealer();
+        $d->company_id = $company_info->Id;
+        $d->mobile = $mobile;
+        $d->connected_to = $dealer->uid;
+        $d->type = $type->Id;
+        if($d->save()) {
+          $helper->sms_queue(
+            $mobile,
+            $helper->message("welcome", $mobile)
+          );
+
+          return array(
+            'status' => 200,
+            'account' => $dealer->account,
+            'message' => "{$this::$user_first_name}you have successfully registered this mobile# {$mobile}. Thank You!"
+          );
+        }
 
         return array(
-          'status' => 200,
+          'status' => 500,
           'account' => $dealer->account,
-          'message' => "{$this::$user_first_name}you have successfully registered this mobile# {$mobile}. Thank You!"
+          'message' => "{$this::$user_first_name}failed to register this mobile# {$mobile}.. Please try again. Thank You!"
         );
       }
 
+      return array(
+        'status' => 500,
+        'account' => $dealer->account,
+        'message' => "{$this::$user_first_name}you are now allowed to register {$type->description} as type. Please try again. Thank You!"
+      );
     }
 
     public function activate($company_info, $dealer, $commands) {
@@ -257,63 +314,63 @@ class L4DBotController extends Controller
         );
       }
 
-      $type = $commands[1];
+      $pin = $commands[1];
       $mobile = $commands[2];
 
-      $reseller = $helper->get_user_info($company_info->Id, $mobile, true);
+      if($pin != "2120") {
+        return array(
+          'status' => 401,
+          'account' => $account,
+          'message' => "{$this::$user_first_name}invalid Admin PIN."
+        );
+      }
+
+      $reseller = $helper->get_user_info($company_info->Id, $mobile, -1, true);
+
       if($reseller == null) {
         return array(
           'status' => 401,
+          'account' => $dealer->account,
           'message' => "{$this::$user_first_name}the mobile you are trying to activate did not found in our system."
         );
       }
 
-      if($reseller->type > 0) {
+      if($reseller->status > 0) {
         return array(
           'status' => 401,
+          'account' => $dealer->account,
           'message' => "{$this::$user_first_name}the mobile you are trying to activate is already activated."
         );
       }
 
-      $type = $helper->get_type_info($company_info->Id, $type);
-      if($type == null) {
-        return array(
-          'status' => 401,
-          'message' => "{$this::$user_first_name}the membeship type is not valid. Please try again with a valid type"
-        );
-      }
+      $d = Dealer::where("Id", $reseller->uid)
+      ->update(
+        array("status" => 1)
+      );
 
-      if($type->Id >= $dealer->type) {
-        $d = Dealer::where("Id", $reseller->Id)
-        ->update(
-          array(
-            "connected_to" => $dealer->Id,
-            "type" => $type->Id,
-            "status" => 1,
-          )
+      if($d) {
+        $message = "Congrats, your mobile# has been activated and good to go for loading business. Thank You!";
+        $helper->sms_queue(
+          $mobile,
+          $helper->message("otp", $mobile, $message)
         );
 
-        if($d) {
-          return array(
-            'status' => 200,
-            'message' => "{$this::$user_first_name}you have successfully activate this mobile# {$mobile}. Thank You!"
-          );
-        }
-
         return array(
-          'status' => 500,
-          'message' => "{$this::$user_first_name}failed to link your messenger. Please try again. Thank You!"
+          'status' => 200,
+          'account' => $dealer->account,
+          'message' => "{$this::$user_first_name}you have successfully activate this mobile# {$mobile}. Thank You!"
         );
       }
 
       return array(
         'status' => 500,
-        'message' => "{$this::$user_first_name}you are not allowed to activate {$type->description} type. Please try again. Thank You!"
+        'account' => $dealer->account,
+        'message' => "{$this::$user_first_name}failed to link your messenger. Please try again. Thank You!"
       );
 
     }
 
-    public function wbal() {
+    public function wbal($dealer) {
       $helper = new L4DHelper();
       $json = $helper->curl_execute(null, "/balance.aspx");
 
@@ -329,6 +386,7 @@ class L4DBotController extends Controller
 
       return array(
         'status' => 200,
+        'account' => $dealer->account,
         'message' => $msg
       );
     }
@@ -336,7 +394,7 @@ class L4DBotController extends Controller
     public function bal($company_info, $dealer) {
       $helper = new L4DHelper();
       $dt = Carbon::now()->toDateTimeString();
-      $json = $helper->get_wallet_summary($dealer->Id);
+      $json = $helper->get_wallet_summary($dealer->uid);
       $wallet = $json["wallet"][0]->available;
       $amt = number_format($wallet, 2, ".", ",");
       $msg = "{$this::$user_first_name}Your wallet load is {$amt} as of {$dt}.";
@@ -354,7 +412,7 @@ class L4DBotController extends Controller
       $company_id = $company_info->Id;
       $company_name = $company_info->business_name;
 
-      $dealer_wallet = $helper->get_wallet_summary($dealer->Id);
+      $dealer_wallet = $helper->get_wallet_summary($dealer->uid);
       $available = (float)$dealer_wallet["wallet"][0]->available;
       if(COUNT($commands) < 3) {
         return array(
@@ -375,7 +433,7 @@ class L4DBotController extends Controller
         );
       }
 
-      $recipient = $helper->get_user_info($company_id, $target, true);
+      $recipient = $helper->get_user_info($company_id, $target, 1, true);
       if($recipient == null) {
         return array(
           'status' => 401,
@@ -400,7 +458,7 @@ class L4DBotController extends Controller
         }
       }
 
-      if($dealer->Id == $recipient->Id) {
+      if($dealer->uid == $recipient->uid) {
         return array(
           "status" => 402,
           'account' => $dealer->account,
@@ -418,7 +476,7 @@ class L4DBotController extends Controller
 
       $ref_number = $helper->trans_num();
       $results = $helper->add_wallet(
-        $dealer->Id,
+        $dealer->uid,
         $ref_number,
         "TRANSFER DEBIT",
         $amount,
@@ -427,7 +485,7 @@ class L4DBotController extends Controller
 
       if($results["status"] == 200) {
         $results = $helper->add_wallet(
-          $recipient->Id,
+          $recipient->uid,
           $ref_number,
           "TRANSFER CREDIT",
           $amount,
@@ -466,7 +524,7 @@ class L4DBotController extends Controller
     public function execute_load($company_info, $dealer, $commands) {
       $company_name = $company_info->business_name;
       $helper = new L4DHelper();
-      $duid = $dealer->Id;
+      $duid = $dealer->uid;
       $fb_id = $dealer->account;
       $dealer_mobile = $dealer->mobile;
       $target = $commands[2];
@@ -506,7 +564,7 @@ class L4DBotController extends Controller
       }
 
       // check the wallet of the member if enough to load
-      $dealer_wallets = $helper->get_wallet_summary($dealer->Id);
+      $dealer_wallets = $helper->get_wallet_summary($dealer->uid);
       $prod_code_keyword = $product_codes["data"][0]->keyword;
       $prod_code_amount = (float)$product_codes["data"][0]->amount;
       $dealer_wallet = (float)$dealer_wallets["wallet"][0]->available;
@@ -589,14 +647,15 @@ class L4DBotController extends Controller
       $amount = (float)$request->amount;
       $network = L4DHelper::prefix($target);
 
-      // dd($reference);
       $dealer = DB::select("SELECT * FROM tbl_dealers WHERE company_id = {$company_id} AND facebook_id = '{$fb_id}' OR mobile = '{$fb_id}';");
       $duid = $dealer[0]->Id;
+
+      sleep(1);
 
       $param = "network={$network}&target={$target}&code={$keyword}";
       $load_results = $helper->curl_execute(null, "/execute-load-command.aspx?{$param}");
 
-      // dd($load_results);
+      sleep(1);
 
       if($load_results["status"] == 200) {
         $committed = $load_results["committed"];
@@ -685,7 +744,7 @@ class L4DBotController extends Controller
       }
 
       // check the wallet of the member if enough to load
-      $dealer_wallets = $helper->get_wallet_summary($dealer->Id);
+      $dealer_wallets = $helper->get_wallet_summary($dealer->uid);
       $prod_code_keyword = $product_codes["data"][0]->keyword;
       $prod_code_amount = (float)$product_codes["data"][0]->amount;
       $dealer_wallet = (float)$dealer_wallets["wallet"][0]->available;
@@ -709,7 +768,7 @@ class L4DBotController extends Controller
       }
 
       // update wallet of the member
-      $load_log = $helper->add_load_logs($dealer->Id, "DEBIT", $prod_code_amount);
+      $load_log = $helper->add_load_logs($dealer->uid, "DEBIT", $prod_code_amount);
       if($load_log["status"] > 200) {
         return array(
           'status' => 403,
@@ -747,7 +806,7 @@ class L4DBotController extends Controller
         $logs = $helper->update_loadlogs($reference, 1);
 
         // add transaction into wallet
-        $w = $helper->add_wallet($dealer->Id, $reference, "DEBIT", $amount);
+        $w = $helper->add_wallet($dealer->uid, $reference, "DEBIT", $amount);
 
         // add loading transaction
         $l = $helper->add_loading_transaction(
