@@ -25,7 +25,9 @@ class L4DHelper extends Controller
 
     public static $company_name = "PollyStore";
 
-    public static $fb_access_token = "EAAC1VxtCsysBAIz0Q01ZCnm50AwOskgTq9sgnuYoLtQ1D4tF6XMHtU6U0hRFrXEsZC3G2w798ZA9UZBEndUwrAdte5EYuOY61VqoOTYNJzZC3SBLlMDpmweOeUXNpRR1jsdk0oIPfkuCwuiorsiu6sERJauc7v3Dqxkec6ZCZAV6QZDZD";
+    public static $fb_access_token = "EAADaKEbnydYBAAMIZCaxiXbDZCRw1WoTyGOkeO4ZAZB6tFUZBTVcjKRf9PzLDy9ldxQG8h3zj8FH788uSo4WNKFyM3WyEKxBZAlS8LZA6kdc7oyqTmwFTekpg3MAxJ7bq0fj3bwieEoxy2ZAzmZCe1oZBsUoYZByVkZC13aKHu6UU1lZBigZDZD";
+
+    public static $ptxtwrd_access_token = "EAADaKEbnydYBAAMIZCaxiXbDZCRw1WoTyGOkeO4ZAZB6tFUZBTVcjKRf9PzLDy9ldxQG8h3zj8FH788uSo4WNKFyM3WyEKxBZAlS8LZA6kdc7oyqTmwFTekpg3MAxJ7bq0fj3bwieEoxy2ZAzmZCe1oZBsUoYZByVkZC13aKHu6UU1lZBigZDZD";
 
     // static method
 
@@ -35,9 +37,6 @@ class L4DHelper extends Controller
       do {
         $uuid = Uuid::uuid4();
         $guid = $uuid->toString();
-
-
-
       }while($c != null);
       return $guid;
     }
@@ -129,7 +128,7 @@ class L4DHelper extends Controller
                 case "0996":
                 case "0997":
                 case "0817":
-                    $net = "INVALID";
+                    $net = "GLOBE";
                     break;
                 case "0922":
                 case "0923":
@@ -425,9 +424,11 @@ class L4DHelper extends Controller
       return $result;
     }
 
-    public function curl_fb_execute($user_id) {
+    public function curl_fb_execute($user_id, $isPtxt = false) {
       // Email API
-      $url = "https://graph.facebook.com/v2.12/". $user_id . "?access_token=" . $this::$fb_access_token;
+      $token = $isPtxt ? $this::$ptxtwrd_access_token : $this::$fb_access_token;
+
+      $url = "https://graph.facebook.com/v2.12/{$user_id}?access_token={$token}";
 
       // Added JSON Header
       $headers = array('Accept: application/json','Content-Type: application/json');
@@ -446,7 +447,6 @@ class L4DHelper extends Controller
       $data = "/messenger/send?fb_id={$fb_id}&message={$messeage}";
       // Email API
       $url = $this::$engine_node_api . $data;
-
       // Added JSON Header
       $headers = array('Accept: application/json','Content-Type: application/json');
 

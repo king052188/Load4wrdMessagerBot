@@ -231,7 +231,15 @@ class L4DBotController extends Controller
           $commands
         );
       }
-
+      else if (strpos($command, 'PROCEED') !== false) {
+        $commands = explode(" ", $command);
+        return $this->proceed_load_request(
+          $company_info,
+          $dealer,
+          $commands
+        );
+      }
+      
       return array(
         'status' => 404,
         'account' => $account,
@@ -470,7 +478,7 @@ class L4DBotController extends Controller
         return array(
           "status" => 402,
           'account' => $dealer->account,
-          "message" => "{$this::$user_first_name}Your wallet is not enough to transfer ₱{$amount} pesos.",
+          "message" => "{$this::$user_first_name}Your wallet is not enough to transfer P{$amount} pesos.",
         );
       }
 
@@ -503,7 +511,7 @@ class L4DBotController extends Controller
           return array(
             "status" => 200,
             'account' => $dealer->account,
-            "message" => "{$this::$user_first_name}you have transfered ₱{$amt} pesos to mobile# {$target}.",
+            "message" => "{$this::$user_first_name}you have transfered P{$amt} pesos to mobile# {$target}.",
           );
         }
 
@@ -524,23 +532,18 @@ class L4DBotController extends Controller
     public function execute_load($company_info, $dealer, $commands) {
       $company_name = $company_info->business_name;
       $helper = new L4DHelper();
-      $duid = $dealer->uid;
-      $fb_id = $dealer->account;
-      $dealer_mobile = $dealer->mobile;
-      $target = $commands[2];
+
       $code = $commands[1];
+      $target = $commands[2];
 
       // check network provider
       $network = L4DHelper::prefix($target);
       if($network == "INVALID") {
         return array(
           'status' => 404,
-          'message' => "{$this::$user_first_name}Your target mobile# is not valid. Please try again. Thank You!",
-          'facebook_id' => $fb_id,
-          'target_mobile' => $target,
-          'product_code' => $code,
-          'load_amount' => 0,
-          'one_time_password' => null
+          'account' => $dealer->account,
+          'message' => "{$this::$user_first_name}your target mobile# is not valid. Please try again. Thank You!",
+          'command' => null
         );
       }
 
@@ -554,12 +557,9 @@ class L4DBotController extends Controller
       if($product_codes["status"] > 200) {
         return array(
           'status' => 404,
-          'message' => "{$this::$user_first_name}Your command is not valid. Please type HELP then press enter.",
-          'facebook_id' => $fb_id,
-          'target_mobile' => $target,
-          'product_code' => $code,
-          'load_amount' => 0,
-          'one_time_password' => null
+          'account' => $dealer->account,
+          'message' => "{$this::$user_first_name}your command is not valid. Please type HELP then press enter.",
+          'command' => null
         );
       }
 
@@ -573,9 +573,9 @@ class L4DBotController extends Controller
       if($dealer_wallet <= 5) {
         return array(
           "status" => 401,
-          "message" => "{$this::$user_first_name}Your wallet available is less than ₱5 pesos. Please reload to be able to load.",
-          "mobile" => $target,
-          "amount" => $prod_code_keyword
+          'account' => $dealer->account,
+          "message" => "{$this::$user_first_name}your wallet available is less than P5 pesos. Please reload to be able to load.",
+          'command' => null
         );
       }
 
@@ -583,124 +583,80 @@ class L4DBotController extends Controller
       if($prod_code_amount > $dealer_wallet) {
         return array(
           "status" => 402,
-          "message" => "{$this::$user_first_name}Your wallet is not enough to load amounting ₱{$prod_code_amount} pesos. Please reload to be able to load.",
-          "mobile" => $target,
-          "amount" => $prod_code_keyword
+          'account' => $dealer->account,
+          "message" => "{$this::$user_first_name}your wallet is not enough to load amounting P{$prod_code_amount} pesos. Please reload to be able to load.",
+          'command' => null
         );
       }
-
-      // update wallet of the member
-      // $wallet = $helper->add_wallet($duid, "BUY", $prod_code_amount);
-      $load_log = $helper->add_load_logs($duid, "DEBIT", $prod_code_amount);
-      if($load_log["status"] > 200) {
-        return array(
-          "status" => 403,
-          "message" => "{$this::$user_first_name}Something went wrong with Telcom. Please try again.",
-          "mobile" => $target,
-          "amount" => $prod_code_keyword
-        );
-      }
-      $reference = $load_log["reference"];
 
       $otp = (int)$helper->one_time_password();
       $helper->sms_queue(
-        $dealer_mobile,
-        $helper->message("otp", $dealer_mobile, "{$otp} is your {$company_name} One-Time-Password or OTP. Please do not share this code with anyone. Thank you!")
+        $dealer->mobile,
+        $helper->message("otp", $dealer->mobile, "{$otp} is your {$company_name} One-Time-Password or OTP. Please do not share this code with anyone. Thank you!")
       );
 
-      $message = "{$this::$user_first_name}your load request for this mobile# {$target} with amount ₱{$prod_code_amount} pesos.\r\n\r\n";
-      $message .= "Reference# {$reference} to proceed your request, please type OTP<space>6digitsCode then press enter.\r\n\r\n";
+      $message = "{$this::$user_first_name}your load request for this mobile# {$target} with amount P{$prod_code_amount} pesos.\r\n\r\n";
+      $message .= "To proceed your request, please type OTP<space>6digitsCode then press enter.\r\n\r\n";
       $message .= "The OTP or One-Time-Password has been sent to your mobile#. Please do not share the code with anyone.";
 
       return array(
         'status' => 200,
+        'account' => $dealer->account,
         'message' => $message,
-        'facebook_id' => $fb_id,
-        'reference_number' => $reference,
-        'target_mobile' => $target,
-        'product_code' => $prod_code_keyword,
-        'load_amount' => $prod_code_amount,
-        'one_time_password' => $otp
+        'command' => array(
+          'mobile' => $target,
+          'code' => $code,
+          'product_code' => $prod_code_keyword,
+          'amount' => $prod_code_amount,
+          'one_time_password' => $otp
+        )
       );
     }
 
-    public function proceed_load_request($access_token, Request $request) {
+    public function proceed_load_request($company_info, $dealer, $commands) {
       $helper = new L4DHelper();
-      $company_info = $helper->get_company_info($access_token);
-      if($company_info == null) {
+      if(COUNT($commands) < 3) {
         return array(
-          'status' => 400,
-          'message' => "Oops, Please contact your service provider.",
-          'facebook_id' => null,
-          'user_mobile' => null,
-          'one_time_password' => 0
+          'status' => 401,
+          'account' => $dealer->account,
+          'message' => "{$this::$user_first_name}invalid command."
         );
       }
 
-      $company_id = $company_info->Id;
-      $company_name = $company_info->business_name;
-
-      $fb_id = $request->fb_id;
-      $reference = $request->reference;
-      $target = $request->target;
-      $keyword = $request->code;
-      $amount = (float)$request->amount;
+      $code = $commands[1];
+      $target = $commands[2];
       $network = L4DHelper::prefix($target);
 
-      $dealer = DB::select("SELECT * FROM tbl_dealers WHERE company_id = {$company_id} AND facebook_id = '{$fb_id}' OR mobile = '{$fb_id}';");
-      $duid = $dealer[0]->Id;
+      // product codes
+      $product_codes = $helper->get_load_keyword(
+        L4DHelper::network($network),
+        $code,
+        "custom"
+      );
+      $prod_code_keyword = $product_codes["data"][0]->keyword;
+      $prod_code_amount = (float)$product_codes["data"][0]->amount;
+
+      $load_log = $helper->add_load_logs($dealer->uid, "DEBIT", $prod_code_amount);
+      if($load_log["status"] > 200) {
+        return array(
+          'status' => 403,
+          'account' => $dealer->account,
+          'message' => "Oops. Something went wrong with Telcom/Network. Please try again."
+        );
+      }
+      $reference = $load_log["reference"];
 
       sleep(1);
 
-      $param = "network={$network}&target={$target}&code={$keyword}";
-      $load_results = $helper->curl_execute(null, "/execute-load-command.aspx?{$param}");
-
-      sleep(1);
-
-      if($load_results["status"] == 200) {
-        $committed = $load_results["committed"];
-        $verified = $load_results["verified"];
-        $topup_transaction = $committed["topupSessionID"];
-
-        // update load logs
-        $logs = $helper->update_loadlogs($reference, 1);
-
-        // add transaction into wallet
-        $w = $helper->add_wallet($duid, $reference, "DEBIT", $amount);
-
-        // add loading transaction
-        $l = $helper->add_loading_transaction(
-          $reference,
-          L4DHelper::network($network),
-          $topup_transaction,
-          $target,
-          $keyword,
-          $amount
-        );
-
-        $description = "{$this::$user_first_name}your request is being processed, reference#: {$reference}\r\n\r\n";
-        $description .= "Please wait more or less 3 seconds for the SMS Notification.\r\n\r\n";
-        $description .= "Note: The SMS Notification for load depends on the NETWORK.";
-
-        $json = array(
-          "status" => 200,
-          "message" => $description,
-          "mobile" => $target,
-          "amount" => $amount
-        );
-      }
-      else {
-        $json = array(
-          "status" => 500,
-          "message" => "{$this::$user_first_name}Your request did not proceed.",
-          "mobile" => $target,
-          "amount" => $amount
-        );
-      }
-
-      return $json;
+      return $this->proceed_load_request_via_sms(
+        $dealer,
+        $reference,
+        $network,
+        $target,
+        $prod_code_keyword,
+        (float)$prod_code_amount
+      );
     }
-
 
     // sms command load
 
@@ -754,7 +710,7 @@ class L4DBotController extends Controller
         return array(
           'status' => 401,
           'account' => $dealer->account,
-          'message' => "Your wallet available is less than ₱5 pesos. Please reload your wallet to be able to load for all networks."
+          'message' => "Your wallet available is less than P5 pesos. Please reload your wallet to be able to load for all networks."
         );
       }
 
@@ -763,7 +719,7 @@ class L4DBotController extends Controller
         return array(
           'status' => 402,
           'account' => $dealer->account,
-          'message' => "Your wallet is not enough to load amounting ₱{$prod_code_amount} pesos. Please reload your wallet to be able to load for all networks.",
+          'message' => "Your wallet is not enough to load amounting P{$prod_code_amount} pesos. Please reload your wallet to be able to load for all networks.",
         );
       }
 
@@ -915,7 +871,7 @@ class L4DBotController extends Controller
               'message' => "Oops, the load amount did not match to the transaction."
             );
           }
-          $msg = "LOAD NOTIFICATION\r\n\r\nTransaction# {$transaction}\r\n\r\nYour load request amount ₱" . $json["Amount"] . " pesos has been loaded to " . $json["TargetNo"] . ". Thank You!";
+          $msg = "LOAD NOTIFICATION\r\n\r\nTransaction# {$transaction}\r\n\r\nYour load request amount P" . $json["Amount"] . " pesos has been loaded to " . $json["TargetNo"] . ". Thank You!";
           return array(
             'status' => 200,
             'message' => $msg,

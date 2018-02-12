@@ -1,5 +1,5 @@
 
-const PAGE_ACCESS_TOKEN               = "EAABkwwUQZC4wBANXBAgzHRZCZCgZCqvULyulg5jZCCvRXoWaJUvVl1kFBcXiI2BCCb5Ty1zwg6BfFVpVOjC0u1Dnbh70UO6R1hpZANQOn9wu3gCPJhGjryUGVTkHnyIFNkGzEpRu2pba5zqZBPbdWreo4wLTtKa0IGMRxp5uUH59t4OIUHsHQxV";
+const PAGE_ACCESS_TOKEN               = "EAADaKEbnydYBAAMIZCaxiXbDZCRw1WoTyGOkeO4ZAZB6tFUZBTVcjKRf9PzLDy9ldxQG8h3zj8FH788uSo4WNKFyM3WyEKxBZAlS8LZA6kdc7oyqTmwFTekpg3MAxJ7bq0fj3bwieEoxy2ZAzmZCe1oZBsUoYZByVkZC13aKHu6UU1lZBigZDZD";
 const VERIFY_TOKEN                    = "POLLY1020";
 const ACCESS_TOKEN                    = "43834cfa-04bb-4814-9ad0-f18a800ef9ff";
 const API_URL                         = "http://localhost:7000";

@@ -126,7 +126,7 @@ function MessengerSend(sender_psid, message, res_json) {
   });
 }
 
-////
+// pollystore commands
 
 function handleMessage(sender_psid, received_message) {
   let response;
@@ -168,17 +168,16 @@ function handleMessage(sender_psid, received_message) {
       }
     }
     else if(msg.includes("PTXT")) {
-      data = msg.split(" ");
-      console.log(data);
-      if(data.length > 0) {
-        callPTXT4wrdSMSAPI(sender_psid, data[1], data[2]);
-      }
+      console.log(msg);
+      PTXT4wrdSend(sender_psid, msg);
     }
     else {
       command(sender_psid, msg);
     }
   }
 }
+
+// messenger api
 
 function handleMessageSend(sender_psid, received_message) {
   let response;
@@ -231,7 +230,6 @@ function callSendAPI(sender_psid, response) {
     }
   });
 }
-
 
 // pollystore 1020
 
@@ -327,6 +325,8 @@ function command(sender_psid, command) {
     "command": command
   }
 
+  console.log(request_body);
+
   request({
     "uri": API_URL + "/api/v1/load/command/web/" + ACCESS_TOKEN,
     "method": "GET",
@@ -362,35 +362,29 @@ function command_load(sender_psid, command) {
     if (!err) {
       var status = parseInt(body['status']);
       var message = body['message'];
+      var command = body['command'];
 
       console.log("status: " + status);
       console.log("message: " + message);
+      console.log("command: " + command);
 
       if(status == 404) {
         handleMessageSend(sender_psid, message);
         return false;
       }
 
-      var trans_num = body['reference_number'];
-      var target_mobile = body['target_mobile'];
-      var product_code = body['product_code'];
-      var load_amount = body['load_amount'];
-      var one_time_password = body['one_time_password'];
+      var cmd = "PROCEED " + command["code"] + " " + command["mobile"];
+      var otp = command["one_time_password"];
 
-      newCache.put('trans_num', trans_num);
-      newCache.put('target_mobile', target_mobile);
-      newCache.put('product_code', product_code);
-      newCache.put('load_amount', load_amount);
-      newCache.put('one_time_password', one_time_password);
+      console.log("cmd: " + cmd);
+      console.log("otp: " + otp);
 
-      console.log("trans_num: " + newCache.get('trans_num'));
-      console.log("target_mobile: " + newCache.get('target_mobile'));
-      console.log("product_code: " + newCache.get('product_code'));
-      console.log("load_amount: " + newCache.get('load_amount'));
-      console.log("one_time_password: " + newCache.get('one_time_password'));
+      newCache.put('cmd', cmd);
+      newCache.put('otp', otp);
 
+      console.log("cmdC: " + newCache.get('cmd'));
+      console.log("otpC: " + newCache.get('otp'));
       handleMessageSend(sender_psid, message);
-
     }
     else {
       console.error("Unable to send message:" + err);
@@ -401,12 +395,21 @@ function command_load(sender_psid, command) {
 }
 
 function otp_validation(sender_psid, users_mpin) {
-  var cache_mpin = 0;
+  var cache_mpin;
+  var cache_command;
   try{
-    cache_mpin = newCache.get('one_time_password');
+
+    cache_mpin = newCache.get('otp');
+    cache_command = newCache.get('cmd');
+
     if(parseInt(cache_mpin) == parseInt(users_mpin)) {
-      // handleMessageSend(sender_psid, "Great. Your load is being processed.");
-      command_proceed(sender_psid);
+      console.log("cache_mpin: " + cache_mpin);
+      console.log("cache_command: " + cache_command);
+
+      command(sender_psid, cache_command);
+
+      newCache.put('cmd', "4234dfdsfdsr3243");
+      newCache.put('otp', "4234dfdsfdsr3243");
     }
     else {
       handleMessageSend(sender_psid, "Your One-Time-Password is not valid. Please check your mobile.");
@@ -422,12 +425,11 @@ function otp_validation(sender_psid, users_mpin) {
 function command_proceed(sender_psid) {
 
   sender_fbuid = sender_psid;
+  console.log("cmdC: " + newCache.get('cmd'));
+
   let request_body = {
-    "fb_id": sender_psid,
-    "reference": newCache.get('trans_num'),
-    "target": newCache.get('target_mobile'),
-    "code": newCache.get('product_code'),
-    "amount": newCache.get('load_amount')
+    "account": sender_psid,
+    "command": newCache.get('cmd')
   }
   console.log(request_body);
 
@@ -456,44 +458,26 @@ function command_proceed(sender_psid) {
   });
 }
 
+// ptxt4wrd command
 
-
-
-
-
-
-
-
-
-// ptxt4wrd
-
-function callPTXT4wrdSMSAPI(sender_psid, mobile, message) {
-  // Construct the message body
+function PTXT4wrdSend(sender_psid, command) {
 
   let request_body = {
-    "mobile": mobile,
-    "message": message
+    "command": command
   }
 
-  newCache = new cache.Cache();
-  var stringMSG = null;
-  // Send the HTTP request to the Messenger Platform
+  console.log(request_body);
+
   request({
-    "uri": API_URL + "/command/ptxt",
+    "uri": API_URL + "/api/v1/ptxt/send/" + sender_psid,
     "method": "GET",
     "json": request_body
   }, (err, res, body) => {
     if (!err) {
-      var status = parseInt(body['Status']);
-      var msg = "Something went wrong, please try again.";
-      if(status == 200) {
-        msg = "Your message is being sent.";
-      }
-      if(status == 201) {
-        msg = "Your message is being sent.";
-      }
-      console.error(msg);
-      handleMessageSend(sender_psid, msg);
+      var status = parseInt(body['status']);
+      var message = body['message'];
+      console.log(message);
+      handleMessageSend(sender_psid, message);
     }
     else {
       console.error("Unable to send message:" + err);
@@ -501,8 +485,6 @@ function callPTXT4wrdSMSAPI(sender_psid, mobile, message) {
       handleMessageSend(sender_psid, stringMSG);
     }
   });
-
-  return stringMSG;
 }
 
 app.listen(3200);
