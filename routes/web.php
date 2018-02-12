@@ -17,9 +17,5 @@ Route::get('/', function () {
 });
 
 Route::get('/t/{id}', 'L4DHelper@get_wallet_summary');
-
 Route::get('/t/prefix/mobile/{mobile}', 'L4DHelper@prefix');
-
-Route::get('/t/{network}/{code}', 'L4DHelper@get_load_command'); // messenger_send
-
-Route::get('/messenger/{fb_id}/{message}', 'L4DHelper@messenger_send'); // messenger_send
+Route::get('/t/{network}/{code}', 'L4DHelper@get_load_command');
