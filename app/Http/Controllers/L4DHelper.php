@@ -425,8 +425,8 @@ class L4DHelper extends Controller
 
     public function curl_execute_remitbox($target, $keyword, $reference) {
 
-      $username = "sspctrading_uat";
-      $password = "hykasd7182379bashd";
+      $username = "sspc_lw";
+      $password = "@KCS2010kcs";
       $authorization = base64_encode($username . ":" . $password);
 
       $url = "http://api-sandbox.loadwallet.com/reloads";
