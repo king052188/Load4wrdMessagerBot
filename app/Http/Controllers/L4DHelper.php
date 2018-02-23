@@ -400,7 +400,6 @@ class L4DHelper extends Controller
       return false;
     }
 
-
     public function curl_execute($data, $path, $custom_url = null) {
       // Email API
       $url = "http://". $this::$load_api . $path;
@@ -421,6 +420,40 @@ class L4DHelper extends Controller
       curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
       $result = json_decode(curl_exec($ch), true);
       curl_close($ch);
+      return $result;
+    }
+
+    public function curl_execute_remitbox($target, $keyword, $reference) {
+
+      $username = "sspctrading_uat";
+      $password = "hykasd7182379bashd";
+      $authorization = base64_encode($username . ":" . $password);
+
+      $url = "http://api-sandbox.loadwallet.com/reloads";
+
+      // Array to Json
+      $data = array(
+        "target" => $target,
+        "amount" => $keyword,
+        "customRefNo" => $reference
+      );
+      $to_json = json_encode($data);
+
+      // Added JSON Header
+      $headers = array(
+        "Authorization: Basic ". $authorization,
+        "Content-Type: application/json"
+      );
+
+      $ch = curl_init($url);
+      curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $to_json);
+      curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+      $result = json_decode(curl_exec($ch), true);
+      curl_close($ch);
+
       return $result;
     }
 
