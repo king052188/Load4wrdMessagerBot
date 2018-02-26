@@ -2,6 +2,10 @@
 <?php
   $asset_url = "http://asset-librares.duckdns.org/";
 ?>
+@section('css')
+<link rel="stylesheet" href="{{ $asset_url }}vendors/bower_components/select2/dist/css/select2.min.css">
+<link rel="stylesheet" href="{{ $asset_url }}vendors/bower_components/sweetalert2/dist/sweetalert2.min.css">
+@stop
 @section('content')
   <header class="content__title">
       <h2>Buy Wallet Load</h2>
@@ -61,56 +65,71 @@
                 <h4 class="card-title">Buy Wallet Load</h4>
                 <h6 class="card-subtitle">Basic Textual inputs with different sizes by height and column.</h6>
 
-                <h3 class="card-body__title">Account#</h3>
+                <h3 class="card-body__title">Mobile#</h3>
                 <div class="form-group">
-                    <input type="text" class="form-control form-control-lg" placeholder="Enter your mobile#">
+                    <input type="text" class="form-control form-control-lg" placeholder="Enter your mobile#" value="09171236987" disabled>
                     <i class="form-group__bar"></i>
                 </div>
 
                 <br>
                 <h3 class="card-body__title">Amount</h3>
                 <div class="form-group">
-                    <input type="text" class="form-control form-control-lg" placeholder="Enter amount I.e.: 1000">
+                    <div class="input-group">
+                        <span class="input-group-addon">₱</span>
+                        <div class="form-group">
+                            <input type="text" class="form-control" placeholder="Enter amount">
+                            <i class="form-group__bar"></i>
+                        </div>
+                        <span class="input-group-addon">.00</span>
+                    </div>
                     <i class="form-group__bar"></i>
                 </div>
 
                 <br>
-                <h3 class="card-body__title">Sent Money To</h3>
+                <h3 class="card-body__title">Sent Type</h3>
                 <div class="form-group">
-                    <input type="text" class="form-control form-control-lg" placeholder="Example: 7-Eleven GCASH">
+                    <div class="form-group">
+                      <select id="sendType" class="select2" data-minimum-results-for-search="Infinity">
+                        <option value="0">-- Select --</option>
+                        <option value="GCASH:09177715380">7-Eleven GCASH</option>
+                        <option value="PAYMAYA:4834-4220-2864-2783">7-Eleven PAYMAYA</option>
+                        <option value="COINS.ph:33SgKahXNV26cEy7PbTaFCWZ5CiqEuvuW2">7-Eleven Coins.ph</option>
+                      </select>
+                    </div>
                     <i class="form-group__bar"></i>
                 </div>
 
                 <br>
-                <h3 class="card-body__title">Reference#</h3>
+                <h3 class="card-body__title">Account#</h3>
                 <div class="form-group">
-                    <input type="text" class="form-control form-control-lg" placeholder="Receipt reference#">
+                    <input type="text" class="form-control form-control-lg" id="sendAccount" placeholder="Account#">
                     <i class="form-group__bar"></i>
                 </div>
 
-                <button type="button" class="btn btn-danger btn-block">Reload</button>
+                <button type="button" class="btn btn-danger btn-block" id="sa-success">Reload</button>
             </div>
           </div>
       </div>
 
-      <div class="card todo">
+      <div class="col-lg-4">
+        <div class="card">
           <div class="card-body">
               <h4 class="card-title">Wallet Transactions</h4>
-              <h6 class="card-subtitle">Your Latest 10 Wallet Transfered</h6>
+              <h6 class="card-subtitle">Your Latest 10 Transactions</h6>
           </div>
           <div class="listview">
               <div class="listview__item">
                   <label class="custom-control custom-control--char todo__item">
-                      <input class="custom-control-input" type="checkbox" value="" checked>
+                      <input class="custom-control-input" type="checkbox" value="" checked disabled>
                       <span class="custom-control--char__helper"><i>F</i></span>
-                      <div class="todo__info">
-                          <span>Fivamus sagittis lacus vel augue laoreet rutrum faucibus dolor</span>
+                      <div>
+                          <span>Buying Wallet Load worth of P100,000.00</span>
                           <small>Today at 8.30 AM</small>
                       </div>
 
                       <div class="listview__attrs">
-                          <span>#Messages</span>
-                          <span>!!!</span>
+                          <span>COMPLETED</span>
+                          <span>GCASH</span>
                       </div>
                   </label>
 
@@ -118,8 +137,8 @@
                       <div class="dropdown actions__item">
                           <i class="zmdi zmdi-more-vert" data-toggle="dropdown"></i>
                           <div class="dropdown-menu dropdown-menu-right">
-                              <a class="dropdown-item" href="">Mark as completed</a>
-                              <a class="dropdown-item" href="">Delete</a>
+                              <a class="dropdown-item" href="">Update</a>
+                              <a class="dropdown-item" href="">Cancel</a>
                           </div>
                       </div>
                   </div>
@@ -127,16 +146,16 @@
 
               <div class="listview__item">
                   <label class="custom-control custom-control--char todo__item">
-                      <input class="custom-control-input" type="checkbox" value="" checked>
+                      <input class="custom-control-input" type="checkbox" value="" checked disabled>
                       <span class="custom-control--char__helper"><i>N</i></span>
-                      <div class="todo__info">
-                          <span>Nullam id dolor id nibh ultricies vehicula ut id elit</span>
+                      <div>
+                          <span>Buying Wallet Load worth of 1,900 pesos</span>
                           <small>Today at 12.30 PM</small>
                       </div>
 
                       <div class="listview__attrs">
-                          <span>#Clients</span>
-                          <span>!!</span>
+                          <span>COMPLETED</span>
+                          <span>COINS.PH</span>
                       </div>
                   </label>
 
@@ -144,8 +163,8 @@
                       <div class="dropdown actions__item">
                           <i class="zmdi zmdi-more-vert" data-toggle="dropdown"></i>
                           <div class="dropdown-menu dropdown-menu-right">
-                              <a class="dropdown-item" href="">Mark as completed</a>
-                              <a class="dropdown-item" href="">Delete</a>
+                            <a class="dropdown-item" href="">Update</a>
+                            <a class="dropdown-item" href="">Cancel</a>
                           </div>
                       </div>
                   </div>
@@ -153,16 +172,16 @@
 
               <div class="listview__item">
                   <label class="custom-control custom-control--char todo__item">
-                      <input class="custom-control-input" type="checkbox" value="">
+                      <input class="custom-control-input" type="checkbox" value="" checked disabled>
                       <span class="custom-control--char__helper"><i>C</i></span>
                       <div class="todo__info">
-                          <span>Cras mattis consectetur purus sit amet fermentum</span>
+                          <span>Buying Wallet Load worth of 3,200 pesos</span>
                           <small>Tomorrow at 10.30 AM</small>
                       </div>
 
                       <div class="listview__attrs">
-                          <span>#Clients</span>
-                          <span>!!</span>
+                          <span>CANCELED</span>
+                          <span>PAYMAYA</span>
                       </div>
                   </label>
 
@@ -170,8 +189,8 @@
                       <div class="dropdown actions__item">
                           <i class="zmdi zmdi-more-vert" data-toggle="dropdown"></i>
                           <div class="dropdown-menu dropdown-menu-right">
-                              <a class="dropdown-item" href="">Mark as completed</a>
-                              <a class="dropdown-item" href="">Delete</a>
+                            <a class="dropdown-item" href="">Update</a>
+                            <a class="dropdown-item" href="">Cancel</a>
                           </div>
                       </div>
                   </div>
@@ -179,16 +198,16 @@
 
               <div class="listview__item">
                   <label class="custom-control custom-control--char todo__item">
-                      <input class="custom-control-input" type="checkbox" value="">
+                      <input class="custom-control-input" type="checkbox" value="" disabled>
                       <span class="custom-control--char__helper"><i>I</i></span>
                       <div class="todo__info">
-                          <span>Integer posuere erat a ante venenatis dapibus posuere velit aliquet</span>
+                          <span>Buying Wallet Load worth of 2,900 pesos</span>
                           <small>05/08/2017 at 08.00 AM</small>
                       </div>
 
                       <div class="listview__attrs">
-                          <span>#Server</span>
-                          <span>!</span>
+                          <span>PENDING</span>
+                          <span>GCASH</span>
                       </div>
                   </label>
 
@@ -196,8 +215,8 @@
                       <div class="dropdown actions__item">
                           <i class="zmdi zmdi-more-vert" data-toggle="dropdown"></i>
                           <div class="dropdown-menu dropdown-menu-right">
-                              <a class="dropdown-item" href="">Mark as completed</a>
-                              <a class="dropdown-item" href="">Delete</a>
+                            <a class="dropdown-item" href="">Update</a>
+                            <a class="dropdown-item" href="">Cancel</a>
                           </div>
                       </div>
                   </div>
@@ -206,6 +225,7 @@
           </div>
 
           <a href="todos.html" class="view-more">View More</a>
+      </div>
       </div>
   </div>
 
@@ -222,13 +242,41 @@
 <script src="{{ $asset_url }}vendors/bower_components/jquery.scrollbar/jquery.scrollbar.min.js"></script>
 <script src="{{ $asset_url }}vendors/bower_components/jquery-scrollLock/jquery-scrollLock.min.js"></script>
 <script src="{{ $asset_url }}vendors/bower_components/salvattore/dist/salvattore.min.js"></script>
+<script src="{{ $asset_url }}vendors/bower_components/select2/dist/js/select2.full.min.js"></script>
 <script src="{{ $asset_url }}vendors/bower_components/flot/jquery.flot.js"></script>
 <script src="{{ $asset_url }}vendors/bower_components/flot/jquery.flot.resize.js"></script>
 <script src="{{ $asset_url }}vendors/bower_components/flot.curvedlines/curvedLines.js"></script>
 <script src="{{ $asset_url }}vendors/bower_components/peity/jquery.peity.min.js"></script>
+<script src="{{ $asset_url }}vendors/bower_components/sweetalert2/dist/sweetalert2.min.js"></script>
 <!-- Charts and maps-->
+
 <script src="{{ $asset_url }}demo/js/flot-charts/curved-line.js"></script>
 <script src="{{ $asset_url }}demo/js/flot-charts/line.js"></script>
 <script src="{{ $asset_url }}demo/js/flot-charts/chart-tooltips.js"></script>
 <script src="{{ $asset_url }}demo/js/other-charts.js"></script>
+<script>
+var account = null, type = null;
+$('#sendType').on('change', function() {
+  var data = this.value.split(":");
+  if(data.length < 1) {
+    $("#sendAccount").val("");
+    return false;
+  }
+  $("#sendAccount").val(data[1]);
+  type =  data[0];
+  account = data[1];
+})
+
+// Success Message
+$('#sa-success').click(function(){
+   swal({
+       title: 'Good job!',
+       text: 'We have sent the intructions to your mobile and email.',
+       type: 'success',
+       buttonsStyling: false,
+       confirmButtonClass: 'btn btn-success',
+       background: 'rgba(0, 0, 0, 0.96)'
+   })
+});
+</script>
 @stop

@@ -76,9 +76,17 @@
                 <br>
                 <h3 class="card-body__title">Amount</h3>
                 <div class="form-group">
-                    <input type="text" class="form-control form-control-lg" placeholder="Enter amount I.e.: 1000">
+                    <div class="input-group">
+                        <span class="input-group-addon">₱</span>
+                        <div class="form-group">
+                            <input type="text" class="form-control" placeholder="Enter amount">
+                            <i class="form-group__bar"></i>
+                        </div>
+                        <span class="input-group-addon">.00</span>
+                    </div>
                     <i class="form-group__bar"></i>
                 </div>
+
                 <button type="button" class="btn btn-danger btn-block">Reload</button>
             </div>
           </div>
