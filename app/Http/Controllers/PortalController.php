@@ -9,7 +9,6 @@ class PortalController extends Controller
     //
 
     public function Dashboard(Request $request) {
-
       $type = 1;
       if(IsSet($request->type)) {
         $type = $request->type;
@@ -19,6 +18,14 @@ class PortalController extends Controller
         "type" => $type
       );
 
-      return view('themes.portal', compact('data'));
+      return view('portal.dashboard', compact('data'));
+    }
+
+    public function Wallet_Buy(Request $request) {
+      return view('portal.wallet.buy');
+    }
+
+    public function Wallet_Sell(Request $request) {
+      return view('portal.wallet.sell');
     }
 }

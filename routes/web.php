@@ -17,6 +17,8 @@ Route::get('/', function () {
 });
 
 Route::get('/portal/dashboard', 'PortalController@Dashboard');
+Route::get('/portal/wallet/buy', 'PortalController@Wallet_Buy');
+Route::get('/portal/wallet/sell', 'PortalController@Wallet_Sell');
 
 Route::get('/t/{id}', 'L4DHelper@get_wallet_summary');
 Route::get('/t/prefix/mobile/{mobile}', 'L4DHelper@prefix');
