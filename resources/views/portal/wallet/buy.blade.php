@@ -1,5 +1,7 @@
 @extends('themes.portal')
-
+<?php
+  $asset_url = "http://asset-librares.duckdns.org/";
+?>
 @section('content')
   <header class="content__title">
       <h2>Buy Wallet Load</h2>
@@ -86,7 +88,7 @@
                     <i class="form-group__bar"></i>
                 </div>
 
-                <button type="button" class="btn btn-danger btn-block">Proceed</button>
+                <button type="button" class="btn btn-danger btn-block">Reload</button>
             </div>
           </div>
       </div>
@@ -210,4 +212,23 @@
   <footer class="footer hidden-xs-down">
       <p>© LoadPortal by PollyStore.</p>
   </footer>
+@stop
+
+@section('script')
+<!-- Vendors -->
+<script src="{{ $asset_url }}vendors/bower_components/jquery/dist/jquery.min.js"></script>
+<script src="{{ $asset_url }}vendors/bower_components/popper.js/dist/umd/popper.min.js"></script>
+<script src="{{ $asset_url }}vendors/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="{{ $asset_url }}vendors/bower_components/jquery.scrollbar/jquery.scrollbar.min.js"></script>
+<script src="{{ $asset_url }}vendors/bower_components/jquery-scrollLock/jquery-scrollLock.min.js"></script>
+<script src="{{ $asset_url }}vendors/bower_components/salvattore/dist/salvattore.min.js"></script>
+<script src="{{ $asset_url }}vendors/bower_components/flot/jquery.flot.js"></script>
+<script src="{{ $asset_url }}vendors/bower_components/flot/jquery.flot.resize.js"></script>
+<script src="{{ $asset_url }}vendors/bower_components/flot.curvedlines/curvedLines.js"></script>
+<script src="{{ $asset_url }}vendors/bower_components/peity/jquery.peity.min.js"></script>
+<!-- Charts and maps-->
+<script src="{{ $asset_url }}demo/js/flot-charts/curved-line.js"></script>
+<script src="{{ $asset_url }}demo/js/flot-charts/line.js"></script>
+<script src="{{ $asset_url }}demo/js/flot-charts/chart-tooltips.js"></script>
+<script src="{{ $asset_url }}demo/js/other-charts.js"></script>
 @stop

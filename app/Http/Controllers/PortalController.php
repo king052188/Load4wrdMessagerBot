@@ -28,4 +28,8 @@ class PortalController extends Controller
     public function Wallet_Sell(Request $request) {
       return view('portal.wallet.sell');
     }
+
+    public function Wallet_Transaction(Request $request) {
+      return view('portal.wallet.transaction');
+    }
 }
