@@ -7,6 +7,9 @@ use Illuminate\Http\Request;
 class PortalController extends Controller
 {
     //
+    public function Reg(Request $request) {
+      return view('reg');
+    }
 
     public function Dashboard(Request $request) {
       $type = 1;
