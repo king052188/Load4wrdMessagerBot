@@ -16,11 +16,14 @@ use Illuminate\Http\Request;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
-Route::get('/v1/generate/uuid', 'L4DHelper@access_token');
 
-Route::name('online')->group(function () {
-  Route::get('/v1/web/register/{access_token}', 'L4DBotController@register_web');
+Route::name('web')->group(function () {
+  Route::get('/v1/web/verfiy/{access_token}', 'PortalController@verify_mobile');
+  Route::get('/v1/web/register/{access_token}', 'PortalController@register_web');
+  Route::get('/v1/web/generate/uuid', 'L4DHelper@access_token');
+});
 
+Route::name('messenger')->group(function () {
   Route::get('/v1/verify/{tag}/{access_token}', 'L4DBotController@verification');
   Route::get('/v1/register/{tag}/{access_token}', 'L4DBotController@register');
   Route::get('/v1/load/command/{access_token}/{request_type?}', 'L4DBotController@command_keyword');

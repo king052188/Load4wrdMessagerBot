@@ -157,53 +157,6 @@ class L4DBotController extends Controller
       );
     }
 
-    public function register_web($access_token, Request $request) {
-      $helper = new L4DHelper();
-      $company_info = $helper->get_company_info($access_token);
-
-      if($company_info == null) {
-        return array(
-          'status' => 400,
-          'message' => "Oops, Please contact your service provider.",
-          'facebook_id' => null,
-          'user_mobile' => null,
-          'one_time_password' => 0
-        );
-      }
-
-      $d = $helper->get_user_info($company_info->Id, $request->mobile, -1, true);
-      if(COUNT($d) > 0) {
-        return array(
-          'status' => 401,
-          'account' => $request->mobile,
-          'message' => "Mobile number already exists in our system."
-        );
-      }
-
-      $d = new Dealer();
-      $d->company_id = $company_info->Id;;
-      $d->firstname = $request->fname;
-      $d->lastname = $request->lname;
-      $d->mobile = $request->mobile;
-      $d->connected_to = 1;
-
-      if($d->save()) {
-        $helper->sms_queue(
-          $request->mobile,
-          $helper->message("welcome", $request->mobile)
-        );
-
-        return array(
-          'status' => 200,
-          'message' => "Thank You for registering!"
-        );
-      }
-      return array(
-        'status' => 500,
-        'message' => "Oops, something went wrong."
-      );
-    }
-
     public function command_keyword($request_type, $access_token, Request $request) {
       $account = $request->account;
       $command = $request->command;

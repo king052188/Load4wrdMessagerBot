@@ -1,19 +1,19 @@
-<?php
-  $asset_url = "http://asset-librares.duckdns.org/";
-?>
 <!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <title>LoadPortal v1.0</title>
+        {!! SEO::generate() !!}
+
+        <meta content="https://avatars1.githubusercontent.com/u/11164074?s=400&amp;v=4" property="og:image" />
+        <meta content="PollStore" property="og:site_name" />
 
         <!-- Vendor styles -->
-        <link rel="stylesheet" href="{{ $asset_url }}vendors/bower_components/material-design-iconic-font/dist/css/material-design-iconic-font.min.css">
-        <link rel="stylesheet" href="{{ $asset_url }}vendors/bower_components/sweetalert2/dist/sweetalert2.min.css">
+        <link rel="stylesheet" href="{{ config('app.asset_url') }}vendors/bower_components/material-design-iconic-font/dist/css/material-design-iconic-font.min.css">
+        <link rel="stylesheet" href="{{ config('app.asset_url') }}vendors/bower_components/sweetalert2/dist/sweetalert2.min.css">
 
         <!-- App styles -->
-        <link rel="stylesheet" href="{{ $asset_url }}css/app.min.css">
+        <link rel="stylesheet" href="{{ config('app.asset_url') }}css/app.min.css">
         <style>
             .error__inner {
                 background-color: rgba(0, 0, 0, 0.650);
@@ -23,7 +23,7 @@
     <body data-sa-theme="1">
         <section class="error">
             <div class="error__inner">
-                <h1>PollyLoad</h1>
+                <h1>Sample</h1>
                 <h2>Sign up to start your own Business!</h2>
 
                 <div class="col-lg-12">
@@ -49,13 +49,37 @@
                   </div>
 
                   <br>
-                  <p>By click the sign-up button, you agreed to our term and contidion.</p>
+                  <p>By clicking sign-up button, you agree to our Terms of Use & Privacy Policy.</p>
 
                   <button type="button" id="btn_sign_up" class="btn btn-danger btn-block">Sign Up</button>
+
+                  <button class="btn btn-light" data-toggle="modal" data-target="#modal-backdrop-ignore">Ignore backdrop click</button>
                   <br><br>
-                  <label>&copy; {{ date('Y') }} PollyLoad</label>
+                  <label>&copy; {{ date('Y') }} Sample</label>
                 </div>
             </div>
+
+            <!-- Ignore backdrop click -->
+             <div class="modal fade" id="modal-backdrop-ignore" data-backdrop="static" tabindex="-1">
+                 <div class="modal-dialog">
+                     <div class="modal-content">
+                         <div class="modal-header">
+                             <h5 class="modal-title pull-left">We've sent the verification code to your mobile#.</h5>
+                         </div>
+                         <div class="modal-body">
+                           <h3 class="card-body__title" style="text-align: left;">Verification Code</h3>
+                           <div class="form-group">
+                               <input type="text" id="mpin" class="form-control form-control-lg" placeholder="Verification code I.e: 123456">
+                               <i class="form-group__bar"></i>
+                           </div>
+                         </div>
+                         <div class="modal-footer">
+                           <!-- <button type="button" class="btn btn-link pull-left" data-dismiss="modal">Cancel</button> -->
+                           <button type="button" id="btn_verify" class="btn btn-link">Verify</button>
+                         </div>
+                     </div>
+                 </div>
+             </div>
         </section>
         <!-- Older IE warning message -->
             <!--[if IE]>
@@ -93,59 +117,10 @@
             <![endif]-->
         <!-- Javascript -->
         <!-- Vendors -->
-        <script src="{{ $asset_url }}vendors/bower_components/jquery/dist/jquery.min.js"></script>
-        <script src="{{ $asset_url }}vendors/bower_components/popper.js/dist/umd/popper.min.js"></script>
-        <script src="{{ $asset_url }}vendors/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
-        <script src="{{ $asset_url }}vendors/bower_components/sweetalert2/dist/sweetalert2.min.js"></script>
-        <script>
-          $(document).ready(function() {
-            $("#btn_sign_up").click(function() {
-              var fname = $("#fname").val();
-              var lname = $("#lname").val();
-              var mobile = $("#mobile").val();
-              if(fname == "") {
-                alert_box("Warning", "Please enter your firstname.", "warning");
-                return false;
-              }
-              if(lname == "") {
-                alert_box("Warning", "Please enter your lastname.", "warning");
-                return false;
-              }
-              if(mobile == "") {
-                alert_box("Warning", "Please enter your mobile#.", "warning");
-                return false;
-              }
-              var url = "/api/v1/web/register/" + xtoken;
-              var data = { fname : fname, lname : lname, mobile : mobile };
-              $.ajax({
-                  dataType: 'json',
-                  type:'GET',
-                  url: url,
-                  data: data,
-                  beforeSend: function () {
-                    $("#btn_sign_up").text("Please wait...");
-                  }
-              }).done(function(json){
-                  if(json.status == 200) {
-                    alert_box("Good Job!", json.message, "success");
-                    return false;
-                  }
-                  alert_box("Warning", json.message, "warning");
-              });
-
-            })
-
-          })
-          function alert_box(title, message, type) {
-            swal({
-                title: title,
-                text: message,
-                type: type,
-                buttonsStyling: false,
-                confirmButtonClass: 'btn btn-success',
-                background: 'rgba(0, 0, 0, 0.96)'
-            })
-          }
-        </script>
+        <script src="{{ config('app.asset_url') }}vendors/bower_components/jquery/dist/jquery.min.js"></script>
+        <script src="{{ config('app.asset_url') }}vendors/bower_components/popper.js/dist/umd/popper.min.js"></script>
+        <script src="{{ config('app.asset_url') }}vendors/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+        <script src="{{ config('app.asset_url') }}vendors/bower_components/sweetalert2/dist/sweetalert2.min.js"></script>
+        <script src="{{ asset('/js/jquery.pollyload.js', config('app.ssl')) }}"></script>
     </body>
 </html>

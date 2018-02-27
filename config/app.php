@@ -28,6 +28,10 @@ return [
 
     'env' => env('APP_ENV', 'production'),
 
+    'ssl' => env('APP_SSL', false),
+
+    'asset_url' => env('APP_ASSET_URL', 'http://asset-librares.duckdns.org/'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Debug Mode

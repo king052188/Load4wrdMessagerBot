@@ -16,7 +16,8 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/reg', 'PortalController@Reg');
+Route::get('/sign-up', 'PageController@Reg');
+
 Route::get('/portal/dashboard', 'PortalController@Dashboard');
 Route::get('/portal/wallet/buy', 'PortalController@Wallet_Buy');
 Route::get('/portal/wallet/sell', 'PortalController@Wallet_Sell');
