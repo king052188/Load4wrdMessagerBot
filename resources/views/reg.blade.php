@@ -3,10 +3,10 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
         {!! SEO::generate() !!}
-
         <meta content="https://avatars1.githubusercontent.com/u/11164074?s=400&amp;v=4" property="og:image" />
-        <meta content="PollStore" property="og:site_name" />
+        <meta content="PollyLoad" property="og:site_name" />
 
         <!-- Vendor styles -->
         <link rel="stylesheet" href="{{ config('app.asset_url') }}vendors/bower_components/material-design-iconic-font/dist/css/material-design-iconic-font.min.css">

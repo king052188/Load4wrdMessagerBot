@@ -16,9 +16,6 @@ class PortalController extends Controller
     //
 
     public function verify_mobile($access_token, Request $request) {
-
-      dd($request);
-
       $helper = new L4DHelper();
       $user_mobile = $request->mobile;
       $company_info = $helper->get_company_info($access_token);
