@@ -24,39 +24,79 @@
         <section class="error">
             <div class="error__inner">
                 <h1>Sample</h1>
-                <h2>Sign up to start your own Business!</h2>
+                <h2>Make your own business using your mobile# or messenger!</h2>
 
-                <div class="col-lg-12">
-                  <br>
-                  <h3 class="card-body__title" style="text-align: left;">First name</h3>
-                  <div class="form-group">
-                      <input type="text" id="fname" class="form-control form-control-lg" placeholder="First name" >
-                      <i class="form-group__bar"></i>
-                  </div>
+                <div class="tab-container">
+                    <ul class="nav nav-tabs nav-fill" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" data-toggle="tab" href="#sign-up-tab" role="tab">Sign Up</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="tab" href="#payment-tab" role="tab">Payment</a>
+                        </li>
+                    </ul>
 
-                  <br>
-                  <h3 class="card-body__title" style="text-align: left;">Last name</h3>
-                  <div class="form-group">
-                      <input type="text" id="lname" class="form-control form-control-lg" placeholder="Last name">
-                      <i class="form-group__bar"></i>
-                  </div>
+                    <div class="tab-content">
+                        <div class="tab-pane active fade show" id="sign-up-tab" role="tabpanel">
+                          <br>
+                          <h3 class="card-body__title" style="text-align: left;">First name</h3>
+                          <div class="form-group">
+                              <input type="text" id="fname" class="form-control form-control-lg" placeholder="First name" >
+                              <i class="form-group__bar"></i>
+                          </div>
 
-                  <br>
-                  <h3 class="card-body__title" style="text-align: left;">Mobile#</h3>
-                  <div class="form-group">
-                      <input type="text" id="mobile" class="form-control form-control-lg" placeholder="Enter your mobile#">
-                      <i class="form-group__bar"></i>
-                  </div>
+                          <br>
+                          <h3 class="card-body__title" style="text-align: left;">Last name</h3>
+                          <div class="form-group">
+                              <input type="text" id="lname" class="form-control form-control-lg" placeholder="Last name">
+                              <i class="form-group__bar"></i>
+                          </div>
 
-                  <br>
-                  <p>By clicking sign-up button, you agree to our Terms of Use & Privacy Policy.</p>
+                          <br>
+                          <h3 class="card-body__title" style="text-align: left;">Mobile#</h3>
+                          <div class="form-group">
+                              <input type="text" id="mobile" class="form-control form-control-lg" placeholder="Enter your mobile#">
+                              <i class="form-group__bar"></i>
+                          </div>
 
-                  <button type="button" id="btn_sign_up" class="btn btn-danger btn-block">Sign Up</button>
+                          <br>
+                          <p>By clicking sign-up button, you agree to our Terms of Use & Privacy Policy.</p>
 
-                  <button class="btn btn-light" data-toggle="modal" data-target="#modal-backdrop-ignore">Ignore backdrop click</button>
-                  <br><br>
-                  <label>&copy; {{ date('Y') }} Sample</label>
+                          <button type="button" id="btn_sign_up" class="btn btn-danger btn-block">Sign Up</button>
+
+                          <button id="btn_modal1" class="btn btn-light" data-toggle="modal" data-target="#modal-backdrop-ignore" style="display: none;"></button>
+                          <br><br>
+
+                          <label>&copy; {{ date('Y') }} Sample</label>
+                        </div>
+                        <div class="tab-pane fade" id="payment-tab" role="tabpanel">
+                            <p>Choose one of our accounts, see below, then go to the nearest 7-Eleven and use the CLIQQ Machine to send your payment to us.</p>
+
+                            <p>If the payment has been made, please take a picture of the receipt, then, send to our facebook page via messenger <a href="https://www.facebook.com/pollystore.1020/" target="_blank">@PollyStore.1020</a></p>
+
+                            <br />
+                            <h4 class="pull-left">GCASH</h4>
+                            <div class="form-group">
+                                <input style="text-align: center;" type="text" id="fname" class="form-control form-control-lg" value="09171236547" >
+                                <i class="form-group__bar"></i>
+                            </div>
+
+                            <h4 class="pull-left">PAYMAYA</h4>
+                            <div class="form-group">
+                                <input style="text-align: center;" type="text" id="fname" class="form-control form-control-lg" value="4834-4220-2864-2783" >
+                                <i class="form-group__bar"></i>
+                            </div>
+
+                            <h4 class="pull-left">Coins.ph</h4>
+                            <div class="form-group">
+                                <input style="text-align: center;" type="text" id="fname" class="form-control form-control-lg" value="33SgKahXNV26cEy7PbTaFCWZ5CiqEuvuW2" >
+                                <i class="form-group__bar"></i>
+                            </div>
+
+                        </div>
+                    </div>
                 </div>
+
             </div>
 
             <!-- Ignore backdrop click -->
@@ -64,7 +104,7 @@
                  <div class="modal-dialog">
                      <div class="modal-content">
                          <div class="modal-header">
-                             <h5 class="modal-title pull-left">We've sent the verification code to your mobile#.</h5>
+                             <h5 class="modal-title pull-left">We have sent a verification code to your mobile.</h5>
                          </div>
                          <div class="modal-body">
                            <h3 class="card-body__title" style="text-align: left;">Verification Code</h3>
