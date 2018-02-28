@@ -5,8 +5,11 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <meta name="csrf-token" content="{{ csrf_token() }}">
         {!! SEO::generate() !!}
-        <meta content="https://avatars1.githubusercontent.com/u/11164074?s=400&amp;v=4" property="og:image" />
+        <meta content="https://scontent.fmnl8-1.fna.fbcdn.net/v/t1.0-1/28277198_150604555609354_8859755462259764624_n.jpg?oh=5f886d861ba946707b81577c80dafba4&oe=5B0B88F7" property="og:image" />
         <meta content="PollyLoad" property="og:site_name" />
+        
+        <link rel="apple-touch-icon" href="https://scontent.fmnl8-1.fna.fbcdn.net/v/t1.0-1/28277198_150604555609354_8859755462259764624_n.jpg?oh=5f886d861ba946707b81577c80dafba4&oe=5B0B88F7">
+        <link rel="shortcut icon" type="image/png" href="https://scontent.fmnl8-1.fna.fbcdn.net/v/t1.0-1/28277198_150604555609354_8859755462259764624_n.jpg?oh=5f886d861ba946707b81577c80dafba4&oe=5B0B88F7"/>
 
         <!-- Vendor styles -->
         <link rel="stylesheet" href="{{ config('app.asset_url') }}vendors/bower_components/material-design-iconic-font/dist/css/material-design-iconic-font.min.css">
@@ -16,14 +19,14 @@
         <link rel="stylesheet" href="{{ config('app.asset_url') }}css/app.min.css">
         <style>
             .error__inner {
-                background-color: rgba(0, 0, 0, 0.650);
+                background-color: rgba(0, 0, 0, 0.7);
             }
         </style>
     </head>
     <body data-sa-theme="1">
         <section class="error">
             <div class="error__inner">
-                <h1>Sample</h1>
+                <h1>{{ config('app.name') }}</h1>
                 <h2>Make your own business using your mobile# or messenger!</h2>
 
                 <div class="tab-container">
@@ -65,14 +68,15 @@
                           <button type="button" id="btn_sign_up" class="btn btn-danger btn-block">Sign Up</button>
 
                           <button id="btn_modal1" class="btn btn-light" data-toggle="modal" data-target="#modal-backdrop-ignore" style="display: none;"></button>
-                          <br><br>
-
-                          <label>&copy; {{ date('Y') }} Sample</label>
                         </div>
                         <div class="tab-pane fade" id="payment-tab" role="tabpanel">
-                            <p>Choose one of our accounts, see below, then go to the nearest 7-Eleven and use the CLIQQ Machine to send your payment to us.</p>
+                            <p style="font-size: 1.2em;">Choose one of our accounts, see below, then go to the nearest 7-Eleven and use the CLIQQ Machine to send your payment to us.</p>
 
-                            <p>If the payment has been made, please take a picture of the receipt, then, send to our facebook page via messenger <a href="https://www.facebook.com/pollystore.1020/" target="_blank">@PollyStore.1020</a></p>
+                            <p style="font-size: 1.2em;">
+                              If the payment has been made, please take a picture of the receipt, then,
+                              send to our facebook page via messenger <a href="https://www.facebook.com/pollystore.1020/" target="_blank">@pollyload</a>
+                              Or email us at <a href="mailto:{{ config('app.payment') }}">{{ config('app.payment') }}</a>
+                            </p>
 
                             <br />
                             <h4 class="pull-left">GCASH</h4>
@@ -95,6 +99,10 @@
 
                         </div>
                     </div>
+
+                    <br><br>
+
+                    <label>&copy; {{ date('Y') }} {{ config('app.name') }}</label>
                 </div>
 
             </div>

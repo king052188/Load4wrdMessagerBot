@@ -17,6 +17,10 @@ return [
 
     'domain' => env('APP_DOMAIN', 'www.pollyload.com'),
 
+    'support' => env('APP_EMAIL_SUPPORT', 'support@pollyload.com'),
+
+    'payment' => env('APP_EMAIL_PAYMENT', 'payment@pollyload.com'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Environment

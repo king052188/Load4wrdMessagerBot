@@ -8,10 +8,24 @@ use Illuminate\Http\Request;
 class PageController extends Controller
 {
     //
-    public function Reg(Request $request) {
+
+    public function Soon(Request $request) {
+      $appname = Helper::Config("name");
+
       Helper::Seo(
-        "Sign Up - Company Name",
-        "The Laravel Ecosystem. Revolutionize how you build the web. Instant PHP Platforms On Linode, DigitalOcean, and more. Push to deploy, PHP 7.2, HHVM, queues, and everything you need to launch and deploy amazing Laravel applications. Launch your application in minutes! Forge UI Preview. Homestead. The official ..."
+        "Home - {$appname}",
+        "The {$appname} Ecosystem. Revolutionize how you load the mobile#. Instant E-LOAD Platforms On SMART, GLOBE, SUN and more. Push to command, SMS, Messenger and {$appname} Portal..."
+      );
+      return view('soon');
+    }
+
+
+    public function Reg(Request $request) {
+      $appname = Helper::Config("name");
+
+      Helper::Seo(
+        "Sign Up - {$appname}",
+        "The {$appname} Ecosystem. Revolutionize how you load the mobile#. Instant E-LOAD Platforms On SMART, GLOBE, SUN and more. Push to command, SMS, Messenger and {$appname} Portal..."
       );
       return view('reg');
     }

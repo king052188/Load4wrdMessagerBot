@@ -12,9 +12,7 @@
 */
 
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', 'PageController@Soon');
 
 Route::get('/sign-up', 'PageController@Reg');
 

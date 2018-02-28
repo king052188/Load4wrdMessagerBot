@@ -5,8 +5,8 @@ $(document).ready(function() {
      headers: {
          'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
      }
+  })
 
-  
   $("#btn_sign_up").click(function() {
     fname = $("#fname").val();
     lname = $("#lname").val();
@@ -31,7 +31,7 @@ $(document).ready(function() {
     var data = { fname : fname, lname : lname, mobile : mobile };
     $.ajax({
         dataType: 'json',
-        type:'GET',
+        type:'POST',
         url: url,
         data: data,
         beforeSend: function () {
@@ -40,13 +40,13 @@ $(document).ready(function() {
         }
     }).done(function(json){
         if(json.status == 200) {
-          console.log(json);
           code = json.one_time_password;
           $("#btn_modal1").click();
           return false;
         }
         alert_box("Warning", json.message, "warning");
         $("#btn_sign_up").text("Sign Up");
+        $("#btn_sign_up").removeAttr("disabled", "disabled");
     });
 
   })
@@ -61,7 +61,7 @@ $(document).ready(function() {
     var data = { fname : fname, lname : lname, mobile : mobile };
     $.ajax({
         dataType: 'json',
-        type:'GET',
+        type:'POST',
         url: url,
         data: data,
         beforeSend: function () {
@@ -70,7 +70,9 @@ $(document).ready(function() {
     }).done(function(json){
         if(json.status == 200) {
           alert_box("Good Job!", json.message, "success");
-          setInterval(reload, 3000);
+          $("#mpin").val("");
+          $("#btn_verify").attr("disabled", "disabled");
+          setInterval(reload, 2000);
           return false;
         }
         alert_box("Warning", json.message, "warning");
