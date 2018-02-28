@@ -13,6 +13,10 @@ $(document).ready(function() {
       alert_box("Warning", "Please enter your lastname.", "warning");
       return false;
     }
+    if(mobile.length < 11 || mobile.length > 11) {
+      alert_box("Warning", "Invalid mobile number", "warning");
+      return false;
+    }
     if(mobile == "") {
       alert_box("Warning", "Please enter your mobile#.", "warning");
       return false;
@@ -26,13 +30,17 @@ $(document).ready(function() {
         data: data,
         beforeSend: function () {
           $("#btn_sign_up").text("Please wait...");
+          $("#btn_sign_up").attr("disabled", "disabled");
         }
     }).done(function(json){
         if(json.status == 200) {
           console.log(json);
+          code = json.one_time_password;
+          $("#btn_modal1").click();
           return false;
         }
         alert_box("Warning", json.message, "warning");
+        $("#btn_sign_up").text("Sign Up");
     });
 
   })
@@ -56,6 +64,7 @@ $(document).ready(function() {
     }).done(function(json){
         if(json.status == 200) {
           alert_box("Good Job!", json.message, "success");
+          setInterval(reload, 3000);
           return false;
         }
         alert_box("Warning", json.message, "warning");
@@ -63,6 +72,10 @@ $(document).ready(function() {
 
   })
 })
+
+function reload() {
+  location.reload();
+}
 function alert_box(title, message, type) {
   swal({
       title: title,
