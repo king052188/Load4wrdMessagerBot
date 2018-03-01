@@ -20,6 +20,10 @@
             .error__inner {
                 background-color: rgba(0, 0, 0, 0.7);
             }
+            @media  screen and (max-width: 1300px) {
+              .error__inner>h1 { font-size: 5.5rem; }
+              .error__inner>h2 { font-size: 1.3rem; }
+            }
         </style>
     </head>
     <body data-sa-theme="1">

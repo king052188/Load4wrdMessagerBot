@@ -7,7 +7,7 @@
         {!! SEO::generate() !!}
         <meta content="https://scontent.fmnl8-1.fna.fbcdn.net/v/t1.0-1/28277198_150604555609354_8859755462259764624_n.jpg?oh=5f886d861ba946707b81577c80dafba4&oe=5B0B88F7" property="og:image" />
         <meta content="PollyLoad" property="og:site_name" />
-        
+
         <link rel="apple-touch-icon" href="https://scontent.fmnl8-1.fna.fbcdn.net/v/t1.0-1/28277198_150604555609354_8859755462259764624_n.jpg?oh=5f886d861ba946707b81577c80dafba4&oe=5B0B88F7">
         <link rel="shortcut icon" type="image/png" href="https://scontent.fmnl8-1.fna.fbcdn.net/v/t1.0-1/28277198_150604555609354_8859755462259764624_n.jpg?oh=5f886d861ba946707b81577c80dafba4&oe=5B0B88F7"/>
 
@@ -20,6 +20,11 @@
         <style>
             .error__inner {
                 background-color: rgba(0, 0, 0, 0.7);
+            }
+            @media  screen and (max-width: 1300px) {
+              .error { margin-top: 80px; }
+              .error__inner>h1 { font-size: 5.5rem; }
+              .error__inner>h2 { font-size: 1.3rem; }
             }
         </style>
     </head>
