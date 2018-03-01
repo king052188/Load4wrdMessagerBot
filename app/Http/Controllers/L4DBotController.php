@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Dealer;
+use App\User;
 use App\DealerType;
 use App\Wallet;
 use App\SMSQueue;
@@ -39,7 +39,7 @@ class L4DBotController extends Controller
       $user_mobile = $request->mobile;
 
       if($tag == "reg") {
-        $dealer = DB::select("SELECT * FROM tbl_dealers WHERE company_id = {$company_id} AND (facebook_id = '{$fb_id}' OR mobile = '{$user_mobile}');");
+        $dealer = DB::select("SELECT * FROM users WHERE company_id = {$company_id} AND (facebook_id = '{$fb_id}' OR mobile = '{$user_mobile}');");
         if(COUNT($dealer) > 0) {
           return array(
             'status' => 401,
@@ -52,7 +52,7 @@ class L4DBotController extends Controller
         }
       }
       else {
-        $dealer = DB::select("SELECT * FROM tbl_dealers WHERE company_id = {$company_id} AND mobile = '{$user_mobile}';");
+        $dealer = DB::select("SELECT * FROM users WHERE company_id = {$company_id} AND mobile = '{$user_mobile}';");
         if(COUNT($dealer) == 0) {
           return array(
             'status' => 401,
@@ -113,7 +113,7 @@ class L4DBotController extends Controller
       }
 
       if($tag == "tag") {
-        $d = Dealer::where("mobile", $user_mobile)
+        $d = User::where("mobile", $user_mobile)
         ->update(
           array("facebook_id" => $fb_id)
         );
@@ -136,7 +136,7 @@ class L4DBotController extends Controller
         );
       }
 
-      $d = new Dealer();
+      $d = new User();
       $d->company_id = $company_info->Id;;
       $d->facebook_id = $fb_id;
       $d->mobile = $user_mobile;
@@ -279,7 +279,7 @@ class L4DBotController extends Controller
       }
 
       if($type->Id >= $dealer->type) {
-        $d = new Dealer();
+        $d = new User();
         $d->company_id = $company_info->Id;
         $d->mobile = $mobile;
         $d->connected_to = $dealer->uid;
@@ -351,7 +351,7 @@ class L4DBotController extends Controller
         );
       }
 
-      $d = Dealer::where("Id", $reseller->uid)
+      $d = User::where("Id", $reseller->uid)
       ->update(
         array("status" => 1)
       );
@@ -816,7 +816,7 @@ class L4DBotController extends Controller
       $network = $request->network;
       $transaction = $request->transaction;
 
-      $dealer = DB::select("SELECT * FROM tbl_dealers WHERE facebook_id = '{$fb_id}' OR mobile = '{$fb_id}';");
+      $dealer = DB::select("SELECT * FROM users WHERE facebook_id = '{$fb_id}' OR mobile = '{$fb_id}';");
       if(COUNT($dealer) == 0) {
         return array(
           'status' => 401,

@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Company;
-use App\Dealer;
+use App\User;
 use App\DealerType;
 use App\Wallet;
 use App\Loading;
@@ -223,7 +223,7 @@ class L4DHelper extends Controller
           SELECT *, a.Id AS uid, mobile AS account, b.code, b.description,
           b.ontop_percentage, b.discount_percentage, b.reseller_credits,
           b.price, b.level
-          FROM tbl_dealers AS a
+          FROM users AS a
           INNER JOIN tbl_dealers_type AS b
           ON a.type = b.Id
           WHERE a.company_id = {$company_id} AND a.mobile = '{$user_account}'{$statuses};
@@ -234,7 +234,7 @@ class L4DHelper extends Controller
           SELECT *, a.Id AS uid, facebook_id AS account, b.code, b.description,
           b.ontop_percentage, b.discount_percentage, b.reseller_credits,
           b.price, b.level
-          FROM tbl_dealers AS a
+          FROM users AS a
           INNER JOIN tbl_dealers_type AS b
           ON a.type = b.Id
           WHERE a.company_id = {$company_id} AND a.facebook_id = '{$user_account}'{$statuses};
@@ -425,7 +425,7 @@ class L4DHelper extends Controller
 
     public function curl_execute_remitbox($target, $keyword, $reference) {
 
-      $username = "cole.h";
+      $username = "cole.hutton";
       $password = "@ABC12abc";
       $authorization = base64_encode($username . ":" . $password);
 

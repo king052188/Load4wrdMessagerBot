@@ -223,7 +223,12 @@
                         <div class="dropdown-menu dropdown-menu-right">
                           <a href="" class="dropdown-item" href="">View Profile</a>
                           <a href="" class="dropdown-item" href="">Settings</a>
-                          <a href="" class="dropdown-item" href="">Logout</a>
+                          <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="dropdown-item">
+                              Logout
+                          </a>
+                          <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                              {{ csrf_field() }}
+                          </form>
                         </div>
                     </li>
 
@@ -256,7 +261,12 @@
                         <div class="dropdown-menu">
                           <a href="" class="dropdown-item" href="">View Profile</a>
                           <a href="" class="dropdown-item" href="">Settings</a>
-                          <a href="" class="dropdown-item" href="">Logout</a>
+                          <a href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="dropdown-item">
+                              Logout
+                          </a>
+                          <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                              {{ csrf_field() }}
+                          </form>
                         </div>
                     </div>
 

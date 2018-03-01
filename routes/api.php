@@ -18,8 +18,8 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 Route::name('web')->group(function () {
-  Route::post('/v1/web/verfiy/{access_token}', 'PortalController@verify_mobile');
-  Route::post('/v1/web/register/{access_token}', 'PortalController@register_web');
+  Route::post('/v1/web/verfiy/{access_token}', 'ApiController@verify_mobile');
+  Route::post('/v1/web/register/{access_token}', 'ApiController@register_web');
   Route::get('/v1/web/generate/uuid', 'L4DHelper@access_token');
 });
 
