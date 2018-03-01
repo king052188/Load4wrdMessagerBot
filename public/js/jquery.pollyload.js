@@ -11,11 +11,6 @@ $(document).ready(function() {
     fname = $("#fname").val();
     lname = $("#lname").val();
     mobile = $("#mobile").val();
-    type = $('input[name=type]:checked').val();
-
-    console.log(type);
-    return false;
-
     if(fname == "") {
       alert_box("Warning", "Please enter your firstname.", "warning");
       return false;

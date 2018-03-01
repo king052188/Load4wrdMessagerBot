@@ -15,9 +15,11 @@
         <link rel="stylesheet" href="{{ config('app.asset_url') }}vendors/bower_components/material-design-iconic-font/dist/css/material-design-iconic-font.min.css">
         <link rel="stylesheet" href="{{ config('app.asset_url') }}vendors/bower_components/animate.css/animate.min.css">
         <link rel="stylesheet" href="{{ config('app.asset_url') }}vendors/bower_components/jquery.scrollbar/jquery.scrollbar.css">
+        <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+
         <link rel="stylesheet" href="{{ config('app.asset_url') }}vendors/bower_components/select2/dist/css/select2.min.css">
         <link rel="stylesheet" href="{{ config('app.asset_url') }}vendors/bower_components/sweetalert2/dist/sweetalert2.min.css">
-        <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
+
 
         <!-- App styles -->
         <link rel="stylesheet" href="{{ config('app.asset_url') }}css/app.min.css">
@@ -49,6 +51,7 @@
                     </ul>
 
                     <div class="tab-content">
+
                         <div class="tab-pane active fade show" id="sign-up-tab" role="tabpanel">
                           <br>
                           <h3 class="card-body__title" style="text-align: left;">First name</h3>
@@ -78,19 +81,20 @@
 
                           <button id="btn_modal1" class="btn btn-light" data-toggle="modal" data-target="#modal-backdrop-ignore" style="display: none;"></button>
                         </div>
+
                         <div class="tab-pane fade" id="payment-tab" role="tabpanel">
                             <p style="font-size: 1.2em;">Choose one of our accounts, see below, then go to the nearest 7-Eleven and use the CLIQQ Machine to send your payment to us.</p>
 
                             <p style="font-size: 1.2em;">
                               If the payment has been made, please take a picture of the receipt, then,
-                              send to our facebook page via messenger <a href="https://www.facebook.com/pollystore.1020/" target="_blank">@pollyload</a>
+                              send to our facebook page via messenger <a href="http://bit.ly/2GVmufB" target="_blank">@PollyLoad</a>
                               Or email us at <a href="mailto:{{ config('app.payment') }}">{{ config('app.payment') }}</a>
                             </p>
 
                             <br />
                             <h4 class="pull-left">GCASH</h4>
                             <div class="form-group">
-                                <input style="text-align: center;" type="text" id="fname" class="form-control form-control-lg" value="09171236547" >
+                                <input style="text-align: center;" type="text" id="fname" class="form-control form-control-lg" value="09178954561" disabled >
                                 <i class="form-group__bar"></i>
                             </div>
 
@@ -107,6 +111,7 @@
                             </div>
 
                         </div>
+
                     </div>
 
                     <br><br>

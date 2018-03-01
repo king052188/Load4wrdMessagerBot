@@ -20,9 +20,11 @@
             .error__inner {
                 background-color: rgba(0, 0, 0, 0.7);
             }
+            .error__inner>.countdown { font-size: 4rem; }
             @media  screen and (max-width: 1300px) {
               .error__inner>h1 { font-size: 5.5rem; }
               .error__inner>h2 { font-size: 1.3rem; }
+              .error__inner>.countdown { font-size: 3rem; }
             }
         </style>
     </head>
@@ -31,6 +33,7 @@
             <div class="error__inner">
                 <h1>{{ config('app.name') }}</h1>
                 <h2>We'll be here soon with our new awesome site!</h2>
+                <div class="countdown" id="getting-started"></div>
             </div>
         </section>
         <!-- Older IE warning message -->
@@ -72,5 +75,11 @@
         <script src="{{ config('app.asset_url') }}vendors/bower_components/jquery/dist/jquery.min.js"></script>
         <script src="{{ config('app.asset_url') }}vendors/bower_components/popper.js/dist/umd/popper.min.js"></script>
         <script src="{{ config('app.asset_url') }}vendors/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+        <script src="//cdn.rawgit.com/hilios/jQuery.countdown/2.2.0/dist/jquery.countdown.min.js"></script>
+        <script type="text/javascript">
+          $("#getting-started").countdown("2018/04/01", function(event) {
+            $(this).text( event.strftime('%D days %H:%M:%S') );
+          });
+        </script>
     </body>
 </html>

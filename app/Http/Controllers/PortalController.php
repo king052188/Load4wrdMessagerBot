@@ -85,10 +85,19 @@ class PortalController extends Controller
       $d->connected_to = 1;
 
       if($d->save()) {
-        $helper->sms_queue(
-          $request->mobile,
-          $helper->message("welcome", $request->mobile)
+        $appname = Helper::Config("name");
+        $msg = array(
+          "1/3 Welcome to {$appname}, you are now successfully registered. Thank You!",
+          "2/3 To activate your account and start loading, on the sign-up page, click the tab payment.",
+          "2/3 For more details, please like our FB page http://bit.ly/2GVmufB or email us at payment@pollyload.com"
         );
+
+        for($i = 0; $i < COUNT($msg); $i++) {
+          $helper->sms_queue(
+            $request->mobile,
+            $helper->message("otp", $request->mobile, $msg[$i])
+          );
+        }
 
         return array(
           'status' => 200,
