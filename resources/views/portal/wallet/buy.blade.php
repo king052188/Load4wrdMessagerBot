@@ -1,10 +1,8 @@
 @extends('themes.portal')
-<?php
-  $asset_url = "http://asset-librares.duckdns.org/";
-?>
+
 @section('css')
-<link rel="stylesheet" href="{{ $asset_url }}vendors/bower_components/select2/dist/css/select2.min.css">
-<link rel="stylesheet" href="{{ $asset_url }}vendors/bower_components/sweetalert2/dist/sweetalert2.min.css">
+<link rel="stylesheet" href="{{ config('app.asset_url') }}vendors/bower_components/select2/dist/css/select2.min.css">
+<link rel="stylesheet" href="{{ config('app.asset_url') }}vendors/bower_components/sweetalert2/dist/sweetalert2.min.css">
 @stop
 @section('content')
   <header class="content__title">
@@ -236,24 +234,24 @@
 
 @section('script')
 <!-- Vendors -->
-<script src="{{ $asset_url }}vendors/bower_components/jquery/dist/jquery.min.js"></script>
-<script src="{{ $asset_url }}vendors/bower_components/popper.js/dist/umd/popper.min.js"></script>
-<script src="{{ $asset_url }}vendors/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
-<script src="{{ $asset_url }}vendors/bower_components/jquery.scrollbar/jquery.scrollbar.min.js"></script>
-<script src="{{ $asset_url }}vendors/bower_components/jquery-scrollLock/jquery-scrollLock.min.js"></script>
-<script src="{{ $asset_url }}vendors/bower_components/salvattore/dist/salvattore.min.js"></script>
-<script src="{{ $asset_url }}vendors/bower_components/select2/dist/js/select2.full.min.js"></script>
-<script src="{{ $asset_url }}vendors/bower_components/flot/jquery.flot.js"></script>
-<script src="{{ $asset_url }}vendors/bower_components/flot/jquery.flot.resize.js"></script>
-<script src="{{ $asset_url }}vendors/bower_components/flot.curvedlines/curvedLines.js"></script>
-<script src="{{ $asset_url }}vendors/bower_components/peity/jquery.peity.min.js"></script>
-<script src="{{ $asset_url }}vendors/bower_components/sweetalert2/dist/sweetalert2.min.js"></script>
+<script src="{{ config('app.asset_url') }}vendors/bower_components/jquery/dist/jquery.min.js"></script>
+<script src="{{ config('app.asset_url') }}vendors/bower_components/popper.js/dist/umd/popper.min.js"></script>
+<script src="{{ config('app.asset_url') }}vendors/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="{{ config('app.asset_url') }}vendors/bower_components/jquery.scrollbar/jquery.scrollbar.min.js"></script>
+<script src="{{ config('app.asset_url') }}vendors/bower_components/jquery-scrollLock/jquery-scrollLock.min.js"></script>
+<script src="{{ config('app.asset_url') }}vendors/bower_components/salvattore/dist/salvattore.min.js"></script>
+<script src="{{ config('app.asset_url') }}vendors/bower_components/select2/dist/js/select2.full.min.js"></script>
+<script src="{{ config('app.asset_url') }}vendors/bower_components/flot/jquery.flot.js"></script>
+<script src="{{ config('app.asset_url') }}vendors/bower_components/flot/jquery.flot.resize.js"></script>
+<script src="{{ config('app.asset_url') }}vendors/bower_components/flot.curvedlines/curvedLines.js"></script>
+<script src="{{ config('app.asset_url') }}vendors/bower_components/peity/jquery.peity.min.js"></script>
+<script src="{{ config('app.asset_url') }}vendors/bower_components/sweetalert2/dist/sweetalert2.min.js"></script>
 <!-- Charts and maps-->
 
-<script src="{{ $asset_url }}demo/js/flot-charts/curved-line.js"></script>
-<script src="{{ $asset_url }}demo/js/flot-charts/line.js"></script>
-<script src="{{ $asset_url }}demo/js/flot-charts/chart-tooltips.js"></script>
-<script src="{{ $asset_url }}demo/js/other-charts.js"></script>
+<script src="{{ config('app.asset_url') }}demo/js/flot-charts/curved-line.js"></script>
+<script src="{{ config('app.asset_url') }}demo/js/flot-charts/line.js"></script>
+<script src="{{ config('app.asset_url') }}demo/js/flot-charts/chart-tooltips.js"></script>
+<script src="{{ config('app.asset_url') }}demo/js/other-charts.js"></script>
 <script>
 var account = null, type = null;
 $('#sendType').on('change', function() {

@@ -13,7 +13,11 @@
 
         <!-- Vendor styles -->
         <link rel="stylesheet" href="{{ config('app.asset_url') }}vendors/bower_components/material-design-iconic-font/dist/css/material-design-iconic-font.min.css">
+        <link rel="stylesheet" href="{{ config('app.asset_url') }}vendors/bower_components/animate.css/animate.min.css">
+        <link rel="stylesheet" href="{{ config('app.asset_url') }}vendors/bower_components/jquery.scrollbar/jquery.scrollbar.css">
+        <link rel="stylesheet" href="{{ config('app.asset_url') }}vendors/bower_components/select2/dist/css/select2.min.css">
         <link rel="stylesheet" href="{{ config('app.asset_url') }}vendors/bower_components/sweetalert2/dist/sweetalert2.min.css">
+        <script defer src="https://use.fontawesome.com/releases/v5.0.6/js/all.js"></script>
 
         <!-- App styles -->
         <link rel="stylesheet" href="{{ config('app.asset_url') }}css/app.min.css">
@@ -173,6 +177,7 @@
         <script src="{{ config('app.asset_url') }}vendors/bower_components/jquery/dist/jquery.min.js"></script>
         <script src="{{ config('app.asset_url') }}vendors/bower_components/popper.js/dist/umd/popper.min.js"></script>
         <script src="{{ config('app.asset_url') }}vendors/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+        <script src="{{ config('app.asset_url') }}vendors/bower_components/select2/dist/js/select2.full.min.js"></script>
         <script src="{{ config('app.asset_url') }}vendors/bower_components/sweetalert2/dist/sweetalert2.min.js"></script>
         <script src="{{ asset('/js/jquery.pollyload.js', config('app.ssl')) }}"></script>
     </body>
