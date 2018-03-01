@@ -14,6 +14,7 @@
 
 Route::get('/', 'PageController@Soon');
 
+Route::get('/login', 'PageController@Login');
 Route::get('/sign-up', 'PageController@Reg');
 
 Route::get('/portal/dashboard', 'PortalController@Dashboard');
