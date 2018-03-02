@@ -94,7 +94,8 @@ class ApiController extends Controller
           "1/4 Congrats {$dealer_name}, you are now registered. Thank You!",
           "2/4 Your password is: {$user_password}. Please do not share with anyone your password.",
           "3/4 To activate your account and start loading, on the sign-up page, click the tab payment.",
-          "4/4 For more details, please like our FB page http://bit.ly/2GVmufB or email us at payment@pollyload.com"
+          "4/4 For more details, please like our FB page http://bit.ly/2GVmufB or email us at payment@pollyload.com",
+          "NOTE: Please do not reply to dis mobile#. Unfortunately, we are unable to respond to inquiries sent to dis mobile#."
         );
 
         for($i = 0; $i < COUNT($msg); $i++) {
