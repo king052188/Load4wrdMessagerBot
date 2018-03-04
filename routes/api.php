@@ -28,7 +28,6 @@ Route::name('messenger')->group(function () {
   Route::get('/v1/register/{tag}/{access_token}', 'L4DBotController@register');
   Route::get('/v1/load/command/{access_token}/{request_type?}', 'L4DBotController@command_keyword');
   Route::get('/v1/load/proceed/{access_token}', 'L4DBotController@proceed_load_request');
-
   Route::get('/v1/messenger/send/{access_token}/{fb_id}', 'MessengerController@send');
   Route::get('/v1/ptxt/send/{fb_id}', 'P4DController@send');
 });

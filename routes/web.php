@@ -11,9 +11,7 @@
 |
 */
 
-
 Route::get('/', 'PageController@Soon');
-
 Route::get('/login', 'PageController@Login');
 Route::get('/sign-up', 'PageController@Reg');
 
@@ -28,5 +26,4 @@ Route::get('/portal/wallet/transactions', 'PortalController@Wallet_Transaction')
 Route::get('/t/remitbox/{target}/{keyword}/{reference}', 'L4DHelper@curl_execute_remitbox');
 
 Auth::routes();
-
 Route::get('/home', 'HomeController@index')->name('home');
