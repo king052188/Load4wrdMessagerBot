@@ -23,7 +23,7 @@ class L4DHelper extends Controller
 
     public static $engine_node_api = "http://localhost:3200";
 
-    public static $company_name = "PollyLoad";
+    public static $company_name = "LoadStop";
 
     public static $fb_access_token = "EAADaKEbnydYBAAMIZCaxiXbDZCRw1WoTyGOkeO4ZAZB6tFUZBTVcjKRf9PzLDy9ldxQG8h3zj8FH788uSo4WNKFyM3WyEKxBZAlS8LZA6kdc7oyqTmwFTekpg3MAxJ7bq0fj3bwieEoxy2ZAzmZCe1oZBsUoYZByVkZC13aKHu6UU1lZBigZDZD";
 
@@ -429,7 +429,7 @@ class L4DHelper extends Controller
       $password = "@ABC12abc";
       $authorization = base64_encode($username . ":" . $password);
 
-      $url = "http://api-sandbox.loadwallet.com/reloads";
+      $url = "https://api.loadwallet.com/reloads";
 
       // Array to Json
       $data = array(
