@@ -15,11 +15,15 @@ return [
 
     'name' => env('APP_NAME', 'Laravel'),
 
-    'domain' => env('APP_DOMAIN', 'www.pollyload.com'),
+    'domain' => env('APP_DOMAIN', 'www.example.com'),
 
-    'support' => env('APP_EMAIL_SUPPORT', 'support@pollyload.com'),
+    'support' => env('APP_EMAIL_SUPPORT', 'support@example.com'),
 
-    'payment' => env('APP_EMAIL_PAYMENT', 'payment@pollyload.com'),
+    'payment' => env('APP_EMAIL_PAYMENT', 'payment@example.com'),
+
+    'loadwallet_username' => env('LOADWALLET_USERNAME', 'username'),
+
+    'loadwallet_password' => env('LOADWALLET_PASSWORD', 'secret'),
 
     /*
     |--------------------------------------------------------------------------
