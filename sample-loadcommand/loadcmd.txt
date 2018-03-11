@@ -1,0 +1,21 @@
+{
+    "code": "2223",
+    "message": "Denom is Not Allowed to Target Product",
+    "tranId": "wrcw8amapluv",
+    "status": "Failed",
+    "balance": 1985,
+    "amount": "MYLOAD7",
+    "customRefNo": "12345",
+    "referenceNumber": "700484856599"
+}
+
+{
+    "code": "0",
+    "message": "Transaction successful",
+    "tranId": "srvkmjappen1",
+    "status": "Successful",
+    "balance": 1979,
+    "amount": "MYLOAD6",
+    "customRefNo": "45122",
+    "referenceNumber": "700484857318"
+}
