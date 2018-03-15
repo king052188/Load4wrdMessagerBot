@@ -747,6 +747,12 @@ class L4DBotController extends Controller
     }
 
     public function proceed_load_request_via_sms($dealer, $reference, $network, $target, $keyword, $amount) {
+
+      if($network!="GLOBE") {
+        $r = $this->proceed_load_request_remitbox($dealer, $reference, $network, $target, $keyword, $amount);
+        return $r;
+      }
+
       $helper = new L4DHelper();
       $param = "network={$network}&target={$target}&code={$keyword}";
       $load_results = $helper->curl_execute(null, "/execute-load-command.aspx?{$param}");
@@ -792,6 +798,50 @@ class L4DBotController extends Controller
       }
 
       return $json;
+    }
+
+    public function proceed_load_request_remitbox($dealer, $reference, $network, $target, $keyword, $amount) {
+      $helper = new L4DHelper();
+      $remitbox = $helper->curl_execute_remitbox($target, $keyword, $reference);
+
+      if (strpos($remitbox["message"], 'Transaction successful') !== false) {
+
+        $topup_transaction = $remitbox["referenceNumber"];
+
+        // update load logs
+        $logs = $helper->update_loadlogs($reference, 1);
+
+        // add transaction into wallet
+        $w = $helper->add_wallet($dealer->uid, $reference, "DEBIT", $amount);
+
+        // add loading transaction
+        $l = $helper->add_loading_transaction(
+          $reference,
+          L4DHelper::network($network),
+          $topup_transaction,
+          $target,
+          $keyword,
+          $amount
+        );
+
+        $description = "You have been loaded this {$target} with amount {$amount} reference#: {$reference}\r\n";
+
+        $json = array(
+          "status" => 200,
+          'account' => $dealer->account,
+          "message" => $description,
+        );
+      }
+
+      else {
+        $json = array(
+          "status" => 500,
+          'account' => $dealer->account,
+          "message" => $remitbox["message"] . " Reference#: {$reference}. Please try again. Thank You!"
+        );
+      }
+      return $json;
+
     }
 
 
