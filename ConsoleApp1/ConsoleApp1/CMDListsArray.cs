@@ -10,7 +10,8 @@ namespace ConsoleApp1
 
     public class CMDListName
     {
-        public string Receive { get; set; }
+        public string DateTime { get; set; }
+        public string Mobile { get; set; }
         public string Message { get; set; }
     }
 }

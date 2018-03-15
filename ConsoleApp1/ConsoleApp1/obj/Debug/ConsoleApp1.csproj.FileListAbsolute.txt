@@ -12,3 +12,9 @@ C:\Users\paopao\Documents\GitHub\Load4wrdMessagerBot\ConsoleApp1\ConsoleApp1\obj
 C:\Users\paopao\Documents\GitHub\Load4wrdMessagerBot\ConsoleApp1\ConsoleApp1\obj\Debug\ConsoleApp1.csproj.CoreCompileInputs.cache
 C:\Users\paopao\Documents\GitHub\Load4wrdMessagerBot\ConsoleApp1\ConsoleApp1\obj\Debug\ConsoleApp1.exe
 C:\Users\paopao\Documents\GitHub\Load4wrdMessagerBot\ConsoleApp1\ConsoleApp1\obj\Debug\ConsoleApp1.pdb
+C:\Users\kpa\Documents\GitHub\Load4wrdMessagerBot\ConsoleApp1\ConsoleApp1\bin\Debug\ConsoleApp1.exe.config
+C:\Users\kpa\Documents\GitHub\Load4wrdMessagerBot\ConsoleApp1\ConsoleApp1\bin\Debug\ConsoleApp1.exe
+C:\Users\kpa\Documents\GitHub\Load4wrdMessagerBot\ConsoleApp1\ConsoleApp1\bin\Debug\ConsoleApp1.pdb
+C:\Users\kpa\Documents\GitHub\Load4wrdMessagerBot\ConsoleApp1\ConsoleApp1\obj\Debug\ConsoleApp1.csproj.CoreCompileInputs.cache
+C:\Users\kpa\Documents\GitHub\Load4wrdMessagerBot\ConsoleApp1\ConsoleApp1\obj\Debug\ConsoleApp1.exe
+C:\Users\kpa\Documents\GitHub\Load4wrdMessagerBot\ConsoleApp1\ConsoleApp1\obj\Debug\ConsoleApp1.pdb

@@ -14,6 +14,8 @@ namespace ConsoleApp1
         public static int row_net { get; set; }
         public static Random rng = new Random();
 
+        public static CMDListsArray CMDReceived;
+
         static void Main(string[] args)
         {
             //for (int i = 0; i < 10; ++i)
@@ -36,130 +38,10 @@ namespace ConsoleApp1
 
             //Console.SetCursorPosition((Console.WindowWidth - 10), 0);
             //Console.Write("{0:HH:mm:ss}", DateTime.Now);
-            CMDListsArray a = new CMDListsArray();
 
-            CMDListName n = new CMDListName();
-            n.Receive = DateTime.Now.ToString("MM/dd/yyyy hh:mm:ss tt");
-            n.Message = "TestA";
-            a.Add(n);
+            
 
-            n = new CMDListName();
-            n.Receive = DateTime.Now.ToString("MM/dd/yyyy hh:mm:ss tt");
-            n.Message = "TestB";
-            a.Add(n);
-
-            n = new CMDListName();
-            n.Receive = DateTime.Now.ToString("MM/dd/yyyy hh:mm:ss tt");
-            n.Message = "TestB";
-            a.Add(n);
-
-            var lastItem = a.Count - 1;
-
-            foreach (CMDListName nn in a)
-            {
-                string x = nn.Receive;
-            }
-
-
-
-            Console.SetWindowSize(85, 17);
-
-
-
-            int row = 0;
-
-            Console.SetCursorPosition(left_A, row);
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.Write("SMSReceiver");
-            Console.ForegroundColor = ConsoleColor.Gray;
-            Console.Write(" by ");
-            Console.ForegroundColor = ConsoleColor.Cyan;
-            Console.Write("fb@kingpauloaquino");
-
-
-            row++;
-
-
-            row++;
-            // status
-            Console.SetCursorPosition(left_A, row);
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write("Modem Status");
-            Console.SetCursorPosition(left_B, row);
-            Console.Write("Online");
-
-
-            row++;
-            // license
-            Console.SetCursorPosition(left_A, row);
-            Console.ForegroundColor = ConsoleColor.Gray;
-            Console.Write("License");
-            Console.SetCursorPosition(left_B, row);
-            Console.Write("PRO-Standard");
-
-            row++;
-            // version
-            Console.SetCursorPosition(left_A, row);
-            Console.ForegroundColor = ConsoleColor.Gray;
-            Console.Write("Version");
-            Console.SetCursorPosition(left_B, row);
-            Console.Write("2.1.0");
-
-            row++;
-            // network
-            Console.SetCursorPosition(left_A, row);
-            Console.ForegroundColor = ConsoleColor.Gray;
-            Console.Write("Network");
-            Console.SetCursorPosition(left_B, row);
-            Console.Write(string.Format("SMART -> {0}%", rng.Next(99)));
-
-            row++;
-            // number
-            Console.SetCursorPosition(left_A, row);
-            Console.ForegroundColor = ConsoleColor.Gray;
-            Console.Write("Number");
-            Console.SetCursorPosition(left_B, row);
-            Console.Write("09171236547");
-
-            row++;
-            Console.SetCursorPosition(left_A, row);
-            Console.ForegroundColor = ConsoleColor.Gray;
-            Console.Write("Uid");
-            Console.SetCursorPosition(left_B, row);
-            Console.Write("09171236547");
-
-            row++;
-            Console.SetCursorPosition(left_A, row);
-            Console.ForegroundColor = ConsoleColor.Gray;
-            Console.Write("Assigned");
-            Console.SetCursorPosition(left_B, row);
-            Console.Write("LoadStop");
-
-
-            row++;
-            row++;
-            Console.SetCursorPosition(left_A, row);
-            Console.ForegroundColor = ConsoleColor.Gray;
-            Console.Write("Text Received");
-
-            //row++;
-            row_net = row;
-            //Console.SetCursorPosition(left_A, row);
-            //Console.ForegroundColor = ConsoleColor.Gray;
-            //Console.Write(string.Format("{0}", DateTime.Now.ToString("MM-dd-yy hh:mm:ss tt")));
-            //Console.SetCursorPosition(left_B, row);
-            //Console.Write("09171236547 -> LOAD 30 09171236547");
-
-
-            //Console.ReadKey();
-
-            Console.CursorVisible = true;
             var w = new Work();
-
-            ThreadStart s = w.network_signal;
-            var thread1 = new Thread(s);
-            thread1.Start();
-
             ThreadStart k = w.received;
             var thread2 = new Thread(k);
             thread2.Start();
@@ -169,6 +51,10 @@ namespace ConsoleApp1
 
     public class Work
     {
+        public static Random rng = new Random();
+
+        public static CMDListsArray CMDReceived;
+
         public void network_signal()
         {
             while (true)
@@ -182,71 +68,144 @@ namespace ConsoleApp1
 
         int row_count = 1;
         
-
         public void received()
         {
-            int rows = Program.row_net + 1;
+            CMDReceived = new CMDListsArray();
+
             while (true)
             {
-                if(row_count == 1)
+                Thread.Sleep(1000);
+
+                int rows = Program.row_net + 1;
+
+                CMDListName n = new CMDListName();
+                n.DateTime = DateTime.Now.ToString("MM/dd/yyyy hh:mm:ss tt");
+                n.Mobile = rng.Next(99).ToString();
+                n.Message = rng.Next(99).ToString();
+                CMDReceived.Add(n);
+                
+                row_count = 1;
+
+                var counter = CMDReceived.Count - 1;
+
+                for (int x = counter; x > 0; x--)
                 {
-                    Thread.Sleep(1000);
+                    CMDListName xssn = new CMDListName();
+                    xssn.DateTime = CMDReceived[x].DateTime;
+                    xssn.Mobile = CMDReceived[x].Mobile;
+                    xssn.Message = CMDReceived[x].Message;
+
+                    Thread.Sleep(100);
                     Console.SetCursorPosition(1, rows);
                     Console.ForegroundColor = ConsoleColor.Gray;
-                    Console.Write(string.Format("{0}", DateTime.Now.ToString("MM/dd/yyyy hh:mm:ss tt")));
+                    Console.Write(string.Format("{0}", xssn.DateTime));
+
                     Console.SetCursorPosition(28, rows);
-                    Console.Write("09171236547 -> LOAD 30 0917123654" + row_count);
+                    Console.Write(string.Format("{0} > {1}", xssn.Mobile, xssn.Mobile));
 
-
-                }
-
-                if(row_count == 2)
-                {
-                    Thread.Sleep(1000);
-                    Console.SetCursorPosition(1, rows);
-                    Console.ForegroundColor = ConsoleColor.Gray;
-                    Console.Write(string.Format("{0}", DateTime.Now.ToString("MM/dd/yyyy hh:mm:ss tt")));
-                    Console.SetCursorPosition(28, rows);
-                    Console.Write("09171236547 -> LOAD 30 0917123654" + row_count);
-
-
+                    if (rows >= 10)
+                    {
+                        break;
+                    }
                     rows++;
-                    Console.SetCursorPosition(1, rows);
-                    Console.ForegroundColor = ConsoleColor.Gray;
-                    Console.Write(string.Format("{0}", DateTime.Now.ToString("MM/dd/yyyy hh:mm:ss tt")));
-                    Console.SetCursorPosition(28, rows);
-                    Console.Write("09171236547 -> LOAD 30 0917123654" + (row_count - 1));
                 }
-
-                if (row_count > 2)
-                {
-                    Thread.Sleep(1000);
-                    Console.SetCursorPosition(1, rows);
-                    Console.ForegroundColor = ConsoleColor.Gray;
-                    Console.Write(string.Format("{0}", DateTime.Now.ToString("MM/dd/yyyy hh:mm:ss tt")));
-                    Console.SetCursorPosition(28, rows);
-                    Console.Write("09171236547 -> LOAD 30 0917123654" + row_count);
-
-                    rows++;
-                    Console.SetCursorPosition(1, rows);
-                    Console.ForegroundColor = ConsoleColor.Gray;
-                    Console.Write(string.Format("{0}", DateTime.Now.ToString("MM/dd/yyyy hh:mm:ss tt")));
-                    Console.SetCursorPosition(28, rows);
-                    Console.Write("09171236547 -> LOAD 30 0917123654" + (row_count - 1));
-
-                    rows++;
-                    Console.SetCursorPosition(1, rows);
-                    Console.ForegroundColor = ConsoleColor.Gray;
-                    Console.Write(string.Format("{0}", DateTime.Now.ToString("MM/dd/yyyy hh:mm:ss tt")));
-                    Console.SetCursorPosition(28, rows);
-                    Console.Write("09171236547 -> LOAD 30 0917123654" + (row_count - 2));
-
-                }
-
-                row_count++;
-                rows = Program.row_net + 1;
             }
         }
-        
+
+
+
+
+        //Console.SetWindowSize(100, 17);
+
+        //    int row = 0;
+
+        //Console.SetCursorPosition(left_A, row);
+        //    Console.ForegroundColor = ConsoleColor.Cyan;
+        //    Console.Write("SMSReceiver");
+        //    Console.ForegroundColor = ConsoleColor.Gray;
+        //    Console.Write(" by ");
+        //    Console.ForegroundColor = ConsoleColor.Cyan;
+        //    Console.Write("fb@kingpauloaquino");
+        //    row++;
+
+        //    row++;
+        //    // status
+        //    Console.SetCursorPosition(left_A, row);
+        //    Console.ForegroundColor = ConsoleColor.Green;
+        //    Console.Write("Modem Status");
+        //    Console.SetCursorPosition(left_B, row);
+        //    Console.Write("Online");
+
+
+        //    row++;
+        //    // license
+        //    Console.SetCursorPosition(left_A, row);
+        //    Console.ForegroundColor = ConsoleColor.Gray;
+        //    Console.Write("License");
+        //    Console.SetCursorPosition(left_B, row);
+        //    Console.Write("PRO-Standard");
+
+        //    row++;
+        //    // version
+        //    Console.SetCursorPosition(left_A, row);
+        //    Console.ForegroundColor = ConsoleColor.Gray;
+        //    Console.Write("Version");
+        //    Console.SetCursorPosition(left_B, row);
+        //    Console.Write("2.1.0");
+
+        //    row++;
+        //    // network
+        //    Console.SetCursorPosition(left_A, row);
+        //    Console.ForegroundColor = ConsoleColor.Gray;
+        //    Console.Write("Network");
+        //    Console.SetCursorPosition(left_B, row);
+        //    Console.Write(string.Format("SMART -> {0}%", rng.Next(99)));
+
+        //    row++;
+        //    // network
+        //    Console.SetCursorPosition(left_A, row);
+        //    Console.ForegroundColor = ConsoleColor.Gray;
+        //    Console.Write("Memory");
+        //    Console.SetCursorPosition(left_B, row);
+        //    Console.Write(string.Format("{0}", rng.Next(99)));
+
+        //    row++;
+        //    // number
+        //    Console.SetCursorPosition(left_A, row);
+        //    Console.ForegroundColor = ConsoleColor.Gray;
+        //    Console.Write("Number");
+        //    Console.SetCursorPosition(left_B, row);
+        //    Console.Write("09171236547");
+
+        //    row++;
+        //    Console.SetCursorPosition(left_A, row);
+        //    Console.ForegroundColor = ConsoleColor.Gray;
+        //    Console.Write("Uid");
+        //    Console.SetCursorPosition(left_B, row);
+        //    Console.Write("09171236547");
+
+        //    row++;
+        //    Console.SetCursorPosition(left_A, row);
+        //    Console.ForegroundColor = ConsoleColor.Gray;
+        //    Console.Write("Assigned");
+        //    Console.SetCursorPosition(left_B, row);
+        //    Console.Write("LoadStop");
+
+
+        //    row++;
+        //    row++;
+        //    Console.SetCursorPosition(left_A, row);
+        //    Console.ForegroundColor = ConsoleColor.Gray;
+        //    Console.Write("Text Received");
+
+        //    row_net = row;
+            
+
+        //    Console.CursorVisible = true;
+        //    var w = new Work();
+
+        //ThreadStart s = w.network_signal;
+        //var thread1 = new Thread(s);
+        //thread1.Start();
     }
 }
